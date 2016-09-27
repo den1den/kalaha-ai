@@ -14,6 +14,13 @@ public class State {
         this.points = points;
     }
 
+    public State(State state) {
+        this.board = new int[state.board.length];
+        System.arraycopy(state.board, 0, this.board, 0, this.board.length);
+        this.points = new int[state.points.length];
+        System.arraycopy(state.points, 0, this.points, 0, this.points.length);
+    }
+
     public static State construct(Rules rules) {
         int[] board = new int[rules.fields()];
         Arrays.fill(board, rules.initStonesPerFields);
@@ -37,6 +44,10 @@ public class State {
         return r;
     }
 
+    public String toSimpleString() {
+        return Arrays.toString(this.board) + ", " + Arrays.toString(this.points);
+    }
+
     public String toStringPlayer(int player) {
         String r = "";
         int fieldsPerPlayer = this.board.length / this.points.length;
@@ -47,6 +58,14 @@ public class State {
         return r;
     }
 
+    public int[] getBoard() {
+        return board;
+    }
+
+    public int points(int player) {
+        return this.points[player];
+    }
+
     public class Move {
         int moveIndex;
         int stones = -1;
@@ -54,6 +73,14 @@ public class State {
 
         public Move(int index) {
             this.moveIndex = index;
+        }
+
+        public int getMoveIndex() {
+            return moveIndex;
+        }
+
+        public boolean affects(int index) {
+            return moveIndex <= index && index <= moveIndex + stones;
         }
 
         public void undo(int color, Rules rules) {
@@ -80,7 +107,7 @@ public class State {
             }
             stones = board[moveIndex];
             if (stones == 0) {
-                throw new Error("Illegal move");
+                throw new Error("Illegal move: move " + this.moveIndex + " on " + State.this);
             }
             board[moveIndex] = 0;
             int i;
@@ -106,30 +133,11 @@ public class State {
 
         @Override
         public String toString() {
+            String s = String.valueOf(this.moveIndex);
             if (this.win > 0) {
-                return this.moveIndex + " (+" + this.win + ")";
-            } else {
-                return this.moveIndex + "";
+                s += " (+" + this.win + ")";
             }
+            return s;
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        State state = (State) o;
-
-        if (!Arrays.equals(board, state.board)) return false;
-        return Arrays.equals(points, state.points);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = Arrays.hashCode(board);
-        result = 31 * result + Arrays.hashCode(points);
-        return result;
     }
 }

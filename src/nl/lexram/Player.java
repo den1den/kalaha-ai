@@ -30,7 +30,8 @@ public abstract class Player {
             int depth = 1;
             while (running && depth <= 10) {
                 //System.out.println("indexing depth "+depth);
-                for (State.Move m : match.moves(color)) {
+                for (Iterator<State.Move> it = match.avaliableMoves(); it.hasNext(); ) {
+                    State.Move m = it.next();
                     m.doMove(color, match.rules);
                     int r = AlphaBetaMax(match, color, depth, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
                     if (r > bestRating) {
@@ -42,11 +43,11 @@ public abstract class Player {
                 }
                 depth++;
             }
-            System.out.println("Found best rating " + bestRating + " at depth " + depthFound);
+            //System.out.println("Found best rating " + bestRating + " at depth " + depthFound);
             if (bestMove != -1) {
                 return bestMove;
             }
-            Iterator<? extends State.Move> iterator = match.moves(color).iterator();
+            Iterator<? extends State.Move> iterator = match.avaliableMoves();
             if (!iterator.hasNext()) {
                 System.out.println("Deadlock");
                 System.out.println(match.state);
@@ -69,7 +70,9 @@ public abstract class Player {
             if (!running) {
                 return rating;
             }
-            for (State.Move m : match.moves(color)) {
+
+            for (Iterator<State.Move> it = match.avaliableMoves(); it.hasNext(); ) {
+                State.Move m = it.next();
                 m.doMove(color, match.rules);
                 a = Math.max(a, AlphaBetaMin(match, color, depthLimit, depth + 1, a, b));
                 m.undo(color, match.rules);
@@ -92,7 +95,8 @@ public abstract class Player {
             if (!running) {
                 return rating(color, match.state);
             }
-            for (State.Move m : match.moves(color)) {
+            for (Iterator<State.Move> it = match.avaliableMoves(); it.hasNext(); ) {
+                State.Move m = it.next();
                 m.doMove(color, match.rules);
                 b = Math.min(b, AlphaBetaMax(match, color, depthLimit, depth + 1, a, b));
                 m.undo(color, match.rules);
@@ -107,5 +111,27 @@ public abstract class Player {
     @Override
     public String toString() {
         return name;
+    }
+
+    public static class Default extends Player {
+        int move = -1;
+
+        public Default(String name) {
+            super(name);
+        }
+
+        @Override
+        public int getMove(int color, Match match) {
+            return move;
+        }
+
+        public void setMove(int move) {
+            System.out.println("setMove(" + move + ")");
+            this.move = move;
+        }
+
+        public int selectedMove() {
+            return move;
+        }
     }
 }
