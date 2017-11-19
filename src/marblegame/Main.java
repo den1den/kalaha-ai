@@ -20,6 +20,7 @@ public class Main {
     Match m;
 
     public static void main(String[] args) throws FileNotFoundException {
+        long t0 = System.currentTimeMillis();
         Main m = new Main();
 
         PrintStream out = System.out;
@@ -30,7 +31,7 @@ public class Main {
             }
         }));
 
-        int MAX = 16;
+        int MAX = 18;
 
         for (int a = MAX; a > 0; a--) {
             for (int b = MAX; b > 0; b--) {
@@ -39,6 +40,8 @@ public class Main {
             }
             out.println();
         }
+
+        out.println("Running time: "+(System.currentTimeMillis() -t0)+ " ms");
     }
 
     void unsetMatch() {
