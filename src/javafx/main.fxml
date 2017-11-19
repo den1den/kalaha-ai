@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.Group?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<BorderPane xmlns="http://javafx.com/javafx/8.0.112-ea" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="javafx.ControllerOneInput">
+    <bottom>
+        <BorderPane BorderPane.alignment="CENTER">
+            <left>
+                <Label fx:id="rightScoreLabel" BorderPane.alignment="CENTER"/>
+            </left>
+            <right>
+                <Label fx:id="leftScoreLabel" textAlignment="RIGHT" BorderPane.alignment="CENTER"/>
+            </right>
+            <center>
+                <Group BorderPane.alignment="CENTER">
+                    <children>
+                        <Button contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#doRightMove"
+                                text="Do AI move"/>
+                        <Button contentDisplay="CENTER" layoutX="94.0" mnemonicParsing="false" onAction="#startNewGame"
+                                text="Reset"/>
+                    </children>
+                </Group>
+            </center>
+            <BorderPane.margin>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+            </BorderPane.margin>
+        </BorderPane>
+    </bottom>
+    <center>
+        <GridPane fx:id="gridpane" alignment="center" hgap="10" vgap="10" BorderPane.alignment="CENTER">
+            <children>
+                <StackPane onMouseClicked="#clickedCircle">
+                    <children>
+                        <Circle fill="dodgerblue" radius="50.0" stroke="BLACK" strokeType="INSIDE"/>
+                        <Label text="-"/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedCircle" GridPane.columnIndex="1">
+                    <children>
+                        <Circle fill="DODGERBLUE" onMouseClicked="#clickedCircle" radius="50.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Label text="-"/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedCircle" GridPane.columnIndex="2">
+                    <children>
+                        <Circle fill="DODGERBLUE" onMouseClicked="#clickedCircle" radius="50.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Label text="-"/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedCircle" GridPane.columnIndex="3">
+                    <children>
+                        <Circle fill="DODGERBLUE" onMouseClicked="#clickedCircle" radius="50.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Label text="-"/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedCircle" GridPane.columnIndex="4">
+                    <children>
+                        <Circle fill="DODGERBLUE" onMouseClicked="#clickedCircle" radius="50.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Label text="-"/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedCircle" GridPane.columnIndex="5">
+                    <children>
+                        <Circle fill="DODGERBLUE" onMouseClicked="#clickedCircle" radius="50.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Label text="-"/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedCircle" GridPane.rowIndex="1">
+                    <children>
+                        <Circle fill="DODGERBLUE" onMouseClicked="#clickedCircle" radius="50.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Label text="-"/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedCircle" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <children>
+                        <Circle fill="DODGERBLUE" onMouseClicked="#clickedCircle" radius="50.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Label text="-"/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedCircle" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                    <children>
+                        <Circle fill="DODGERBLUE" onMouseClicked="#clickedCircle" radius="50.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Label text="-"/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedCircle" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                    <children>
+                        <Circle fill="DODGERBLUE" onMouseClicked="#clickedCircle" radius="50.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Label text="-"/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedCircle" GridPane.columnIndex="4" GridPane.rowIndex="1">
+                    <children>
+                        <Circle fill="DODGERBLUE" onMouseClicked="#clickedCircle" radius="50.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Label text="-"/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedCircle" GridPane.columnIndex="5" GridPane.rowIndex="1">
+                    <children>
+                        <Circle fill="DODGERBLUE" onMouseClicked="#clickedCircle" radius="50.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Label text="-"/>
+                    </children>
+                </StackPane>
+            </children>
+            <rowConstraints>
+                <RowConstraints/>
+                <RowConstraints minHeight="100.0" prefHeight="100.0"/>
+            </rowConstraints>
+            <columnConstraints>
+                <ColumnConstraints/>
+                <ColumnConstraints minWidth="100.0" prefWidth="100.0"/>
+                <ColumnConstraints minWidth="100.0" prefWidth="100.0"/>
+                <ColumnConstraints minWidth="100.0" prefWidth="100.0"/>
+                <ColumnConstraints minWidth="100.0" prefWidth="100.0"/>
+                <ColumnConstraints minWidth="100.0" prefWidth="100.0"/>
+            </columnConstraints>
+            <BorderPane.margin>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+            </BorderPane.margin>
+        </GridPane>
+    </center>
+</BorderPane>
