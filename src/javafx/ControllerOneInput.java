@@ -3,6 +3,8 @@ package javafx;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Shape;
+import marblegame.Competition;
+import marblegame.Match;
 import marblegame.players.*;
 
 /**
@@ -16,23 +18,24 @@ public class ControllerOneInput extends ControllerTwoPlayers {
     private Player right;
     int rightIndex = -1;
 
-    protected void createNewPlayers() {
+    @Override
+    protected Competition createNewPlayers(Match match) {
         left = new RecordedPlayer<>(new SimplePlayer("Human"));
         right = new RecordedPlayer<>(new AiPlayer("Computer", match));
         right = new RecordedPlayer<>(new NaivePlayer("Naive"));
-        match.setPlayers(left, right);
+        return new Competition(match, left, right);
     }
 
     public void doRightMove(MouseEvent event) {
-        if (match.getTurn() != 1) {
+        if (competition.getTurn() != 1) {
             System.err.println("It is not your turn!");
             return;
         }
         if (rightIndex != -1) {
             getShape(rightIndex).setFill(defaultColor);
         }
-        leftScore += match.move();
-        rightIndex = match.getLastMove();
+        leftScore += competition.move();
+        rightIndex = competition.getLastMove();
         getShape(rightIndex).setFill(selectedRightColor);
         setLeftScoreText();
         setBoardText();
@@ -42,7 +45,7 @@ public class ControllerOneInput extends ControllerTwoPlayers {
         Node source = (Node) event.getSource();
         if (this.gridpane.equals(source.getParent())) {
             int index = (int) source.getProperties().get("field leftIndex");
-            if (match.isInRange(index)) { // match.canSet
+            if (competition.isInRange(index)) { // competition.canSet
                 clickMove(index);
             } else {
                 unclickMove();
@@ -78,7 +81,7 @@ public class ControllerOneInput extends ControllerTwoPlayers {
 
     private void doMove() {
         left.get().setMove(leftIndex);
-        rightScore += match.move();
+        rightScore += competition.move();
         setRightScoreText();
         setBoardText();
         unclickMove();

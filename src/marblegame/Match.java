@@ -3,8 +3,9 @@ package marblegame;
 import com.sun.istack.internal.NotNull;
 import marblegame.players.Player;
 import marblegame.players.RecordedPlayer;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -12,106 +13,94 @@ import java.util.NoSuchElementException;
  * Created by dennis on 2-3-17.
  */
 public class Match {
-    BoardState board;
+    State state;
     final int[] startFields;
     final int[] endFields;
     final int[] targetAmount;
     final int[] target2Amount;
-    Player[] players;
     private boolean onlyWinOnOtherTeritory = true;
-    private int lastMove = -1;
 
-    public Match(BoardState board, int[] startFields, int[] endFields, int[] targetAmount, int[] target2Amount, Player[] players) {
-        this.board = board;
+    public Match(State state, int[] startFields, int[] endFields, int[] targetAmount, int[] target2Amount) {
+        this.state = state;
         this.startFields = startFields;
         this.endFields = endFields;
         this.targetAmount = targetAmount;
         this.target2Amount = target2Amount;
-        this.players = players;
     }
 
-    public void setPlayers(Player... players) {
-        assert this.getPlayers().length == players.length;
-        this.players = players;
+    private static boolean isPlayerWinner(State state) {
+        return state.getPlayerPoints() > state.getMaxOtherPlayerPoints() + state.remainingPoints();
     }
 
-    public void setPlayer(int i, Player p) {
-        this.getPlayers()[i] = p;
-    }
-
-    public boolean isInRange(int move, BoardState board) {
+    public boolean isInRange(int move, State board) {
         int min = startFields[board.turn];
         int max = endFields[board.turn];
-        return move >= min && move <= max && getBoard().fields[move] > 0;
+        return move >= min && move <= max && getState().fields[move] > 0;
     }
 
     public boolean isInRange(int move) {
-        return isInRange(move, board);
+        return isInRange(move, state);
     }
 
     int isFinished() {
-        return isFinished(board);
+        return isFinished(state);
     }
 
     /**
      * @param board
      * @return -1 iff not finished, the winner index otherwise
      */
-    int isFinished(BoardState board) {
+    int isFinished(State board) {
         if (isPlayerWinner(board)) {
             return board.turn;
         }
         int min = startFields[board.turn];
         int max = endFields[board.turn];
         for (int i = min; i <= max; i++) {
-            if (getBoard().fields[i] > 0) {
+            if (getState().fields[i] > 0) {
                 return -1;
             }
         }
         return 1 - board.turn;
     }
 
-    private static boolean isPlayerWinner(BoardState board) {
-        return board.getPlayerPoints() > board.getMaxOtherPlayerPoints() + board.remainingPoints();
+    public boolean isPlayerWinner() {
+        return isPlayerWinner(state);
     }
 
     public Iterator<Integer> getPossibleMoves() {
         return AvailableMoveIterator.from(this);
     }
 
-    /**
-     * Do a move by the current player.
-     *
-     * @return move that is done
-     */
-    public int move() {
-        Player p = players[board.turn];
-        lastMove = p.getMove();
-        int gain = move(lastMove);
-        return gain;
-    }
-
     @Override
     public String toString() {
-        return toString(board, true, true);
+        return state.toString();
     }
 
-    public String toString(BoardState board) {
-        return toString(board, true, true);
+    public String toString(State board, Player[] players) {
+        return toString(board, players, true, true);
     }
 
-    public String toString(BoardState board, boolean showTurn, boolean showIndices) {
-        int prevTurn = board.turn == 0 ? getPlayers().length - 1 : board.turn - 1;
+    public String toString(State board) {
+        StringBuilder s = new StringBuilder();
+        for (int i = 0; i < startFields.length; i++) {
+            s.append(System.lineSeparator()).append(board.toStringPlayer(i));
+        }
+        return s.toString();
+    }
+
+    public String toString(State board, Player[] players, boolean showTurn, boolean showIndices) {
+        int prevTurn = board.turn == 0 ? startFields.length - 1 : board.turn - 1;
         String s = "";
-        for (int i = 0; i < getPlayers().length; i++) {
-            Player p = getPlayers()[i];
+        for (int i = 0; i < startFields.length; i++) {
+            Player p = players[i];
 
             if (showIndices && i == 0) {
                 s += String.format("                %s\n", board.toStringPlayerIndices(i));
             }
 
             String boardString;
-            if (showTurn && i == prevTurn && p instanceof RecordedPlayer) {
+            if (showTurn && i == prevTurn && p != null && p instanceof RecordedPlayer) {
                 boardString = board.toStringPlayer(i, ((RecordedPlayer) p).getLastMove());
             } else {
                 boardString = board.toStringPlayer(i);
@@ -121,11 +110,11 @@ public class Match {
         return s;
     }
 
-    int move(int moveIndex) {
-        return move(moveIndex, board);
+    public int move(int moveIndex) {
+        return move(moveIndex, state);
     }
 
-    public int move(int moveIndex, BoardState board) {
+    public int move(int moveIndex, State board) {
         int win = 0;
         int stones = board.fields[moveIndex];
         if (stones <= 0) {
@@ -169,156 +158,17 @@ public class Match {
         return win;
     }
 
-    private void nextTurn(BoardState board) {
+    private void nextTurn(State board) {
         board.turn++;
-        board.turn %= players.length;
+        board.turn %= startFields.length;
     }
 
-    public BoardState getBoard() {
-        return new BoardState(board);
-    }
-
-    public Player[] getPlayers() {
-        return players;
-    }
-
-    public int getLastMove() {
-        return lastMove;
+    public State getState() {
+        return new State(state);
     }
 
     public int getTurn() {
-        return board.turn;
-    }
-
-    /**
-     * Created by dennis on 2-3-17.
-     */
-    public static class BoardState {
-        int[] fields;
-        int[] points;
-        int turn;
-
-        BoardState(int[] fields, int[] points) {
-            this(fields, points, 0);
-        }
-
-        BoardState(int[] fields, int[] points, int turn) {
-            this.fields = fields;
-            this.points = points;
-            this.turn = turn;
-        }
-
-        public int getMaxOtherPlayerPoints() {
-            int max = -1;
-            for (int i = 0; i < points.length; i++) {
-                if (i != turn) {
-                    if (points[i] > max) {
-                        max = points[i];
-                    }
-                }
-            }
-            return max;
-        }
-
-        public int remainingPoints() {
-            int sum = 0;
-            for (int i = 0; i < fields.length; i++) {
-                sum += fields[i];
-            }
-            return sum;
-        }
-
-        public static class TestBoardState extends BoardState {
-            public TestBoardState(int[] fields, int[] points, int turn) {
-                super(fields, points, turn);
-            }
-        }
-
-        public BoardState(BoardState boardState) {
-            this(
-                    Arrays.copyOf(boardState.fields, boardState.fields.length),
-                    Arrays.copyOf(boardState.points, boardState.points.length),
-                    boardState.turn
-            );
-        }
-
-        String printLine(int fieldsLow, int fieldsHigh) {
-            String r = "";
-            for (int i = fieldsLow; i < fieldsHigh; i++) {
-                r += "------";
-                if (i + 1 < fieldsHigh) r += " ";
-            }
-            for (int i = fieldsLow; i < fieldsHigh; i++) {
-                r += "      ";
-                if (i + 1 < fieldsHigh) r += " ";
-            }
-            for (int i = fieldsLow; i < fieldsHigh; i++) {
-                r += String.format("| %2d |", this.fields[i]);
-                if (i + 1 < fieldsHigh) r += " ";
-            }
-            for (int i = fieldsLow; i < fieldsHigh; i++) {
-                r += "      ";
-                if (i + 1 < fieldsHigh) r += " ";
-            }
-            for (int i = fieldsLow; i < fieldsHigh; i++) {
-                r += "------";
-                if (i + 1 < fieldsHigh) r += " ";
-            }
-            return r;
-        }
-
-        String toStringPlayer(int player, int move) {
-            String r = "";
-            int fieldsPerPlayer = fields.length / this.points.length;
-            for (int i = player * fieldsPerPlayer; i < (player + 1) * fieldsPerPlayer; i++) {
-                if (i == move) {
-                    r += String.format("_%2d_, ", this.fields[i]);
-                } else {
-                    r += String.format("<%2d>, ", this.fields[i]);
-                }
-            }
-            r += "{" + this.points[player] + "}";
-            return r;
-        }
-
-        public String toStringPlayerIndices(int player) {
-            String r = "";
-            int fieldsPerPlayer = fields.length / this.points.length;
-            for (int i = player * fieldsPerPlayer; i < (player + 1) * fieldsPerPlayer; i++) {
-                r += String.format("<%2d>, ", i);
-            }
-            return r;
-        }
-
-        public String toStringPlayer(int player) {
-            return toStringPlayer(player, -1);
-        }
-
-        @Override
-        public String toString() {
-            String r = "Board: " + toStringPlayer(0);
-            for (int i = 1; i < this.points.length; i++) {
-                r += System.lineSeparator() + "       " + toStringPlayer(i);
-            }
-            return r;
-        }
-
-        public void setNull() {
-            this.fields = null;
-            this.points = null;
-        }
-
-        public int[] getFields() {
-            return fields;
-        }
-
-        public int getPoints() {
-            return points[turn];
-        }
-
-        private int getPlayerPoints() {
-            return points[turn];
-        }
+        return state.turn;
     }
 
     public static class AvailableMoveIterator implements Iterator<Integer> {
@@ -329,10 +179,10 @@ public class Match {
         private int max;
 
         public static AvailableMoveIterator from(@NotNull Match match) {
-            return from(match, match.getBoard());
+            return from(match, match.getState());
         }
 
-        public static AvailableMoveIterator from(@NotNull Match match, @NotNull BoardState boardState) {
+        public static AvailableMoveIterator from(@NotNull Match match, @NotNull State boardState) {
             int min = match.startFields[boardState.turn];
             int max = match.endFields[boardState.turn];
             return new AvailableMoveIterator(boardState.fields, min, max);
@@ -382,50 +232,26 @@ public class Match {
             }
         }
     }
-    /*
 
-    *//**
-     * Created by dennis on 2-3-17.
-     *//*
-    public static class Rules {
-        private int targetAmount = 3;
-        private int targetPoints = 3;
-        private int target2Amount = 2;
-        private int target2Points = 2;
-        private int initStones = 4;
-
-        public int[] getInitFields() {
-            int[] fields = new int[12];
-            Arrays.fill(fields, initStones);
-            return fields;
+    public static class Serializer {
+        public static JSONObject toJson(Match match) {
+            JSONObject r = new JSONObject();
+            r.put("state", State.Serializer.toJson(match.state));
+            r.put("startFields", Util.toArray(match.startFields));
+            r.put("endFields", Util.toArray(match.endFields));
+            r.put("targetAmount", Util.toArray(match.targetAmount));
+            r.put("target2Amount", Util.toArray(match.target2Amount));
+            return r;
         }
 
-        public int[] getInitPoints() {
-            return new int[2];
+        public static Match fromJSONObject(JSONObject object) {
+            return new Match(
+                    State.Serializer.fromJSONObject((JSONObject) object.get("state")),
+                    Util.toArray((JSONArray) object.get("startFields")),
+                    Util.toArray((JSONArray) object.get("endFields")),
+                    Util.toArray((JSONArray) object.get("targetAmount")),
+                    Util.toArray((JSONArray) object.get("target2Amount"))
+            );
         }
-
-        public int getFieldsPerPlayer() {
-            return 6;
-        }
-
-        public int getTargetAmount() {
-            return targetAmount;
-        }
-
-        public int getTarget2Amount() {
-            return target2Amount;
-        }
-
-        public int getTargetPoints() {
-            return targetPoints;
-        }
-
-        public int getTarget2Points() {
-            return target2Points;
-        }
-
-        public BoardState createBoardState(Player[] players) {
-            return new BoardState(players, getInitFields(), getInitPoints());
-        }
-    }*/
+    }
 }

@@ -1,7 +1,9 @@
 package marblegame.players;
 
+import marblegame.Competition;
 import marblegame.Match;
 import marblegame.MatchBuilder;
+import marblegame.State;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,20 +12,21 @@ import org.junit.Test;
  */
 public class AiPlayerTest {
 
-    Match match;
-    Match.BoardState board = null;
-    AiPlayer aiPlayer = null;
-    Player player = new SimplePlayer("Opponent");
+    private Match match;
+    private Competition competition;
+    private State board = null;
+    private AiPlayer aiPlayer = null;
+    private Player player = new SimplePlayer("Opponent");
 
-    public void setup() {
+    private void setup() {
         match = new MatchBuilder().setPlayers(null, player).setBoard(board).createMatch();
         aiPlayer = new AiPlayer("Test Player", match);
-        match.setPlayer(0, aiPlayer);
+        competition = new Competition(match, aiPlayer);
     }
 
     @Test
     public void calcMove0() throws Exception {
-        board = new Match.BoardState.TestBoardState(
+        board = new State(
                 new int[]{0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0},
                 new int[]{0, 0},
                 0
@@ -34,7 +37,7 @@ public class AiPlayerTest {
 
     @Test
     public void calcMove1() throws Exception {
-        board = new Match.BoardState.TestBoardState(
+        board = new State(
                 new int[]{0, 0, 2, 0, 0, 2, 0, 2, 0, 0, 0, 0},
                 new int[]{0, 0},
                 0
@@ -45,7 +48,7 @@ public class AiPlayerTest {
 
     @Test
     public void calcMoveTerminates() throws Exception {
-        board = new Match.BoardState.TestBoardState(
+        board = new State(
                 new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 new int[]{0, 0},
                 0
@@ -56,7 +59,7 @@ public class AiPlayerTest {
 
     @Test
     public void calcMoveTerminates2() throws Exception {
-        board = new Match.BoardState.TestBoardState(
+        board = new State(
                 new int[]{0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0},
                 new int[]{0, 0},
                 0

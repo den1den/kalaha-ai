@@ -6,9 +6,8 @@ import marblegame.players.HumanPlayer;
 import marblegame.players.RecordedPlayer;
 import marblegame.players.SimplePlayer;
 
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Iterator;
 
@@ -17,100 +16,110 @@ import java.util.Iterator;
  */
 public class Main {
 
-    Match m;
+    Competition c;
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws IOException {
         long t0 = System.currentTimeMillis();
         Main m = new Main();
 
-        PrintStream out = System.out;
-        System.setOut(new PrintStream("log"));
-        System.setOut(new PrintStream(new OutputStream() {
-            @Override
-            public void write(int b) throws IOException {
-            }
-        }));
+        File outputFile = new File("ai-self-play-winners.txt");
+        File output2File = new File("ai-self-play-moves.txt");
+        // if(outputFile.exists()) throw new IOException("File still exists");
+        outputFile.createNewFile();
+        output2File.createNewFile();
+        PrintStream outStream = new PrintStream(outputFile);
+        PrintStream out2Stream = new PrintStream(output2File);
 
-        int MAX = 18;
+        int MAX;
+        MAX = 17;
+        MAX = 14;
 
         for (int a = MAX; a > 0; a--) {
             for (int b = MAX; b > 0; b--) {
                 int winner = m.aiMatch(a, b);
-                out.print(winner + "\t");
+                outStream.print(winner + "\t");
+                out2Stream.print(m.c.getMoves() + "\t");
             }
-            out.println();
+            outStream.println();
+            out2Stream.println();
         }
 
-        out.println("Running time: "+(System.currentTimeMillis() -t0)+ " ms");
+        String endResult = "Running time: " + (System.currentTimeMillis() - t0) + " ms";
+        outStream.println(endResult);
+        System.out.println(endResult);
+
+        outStream.close();
+        out2Stream.close();
     }
 
     void unsetMatch() {
-        m = new MatchBuilder().setPlayers(2).createMatch();
+        Match match = new MatchBuilder().setPlayers(2).createMatch();
         RecordedPlayer<HumanPlayer> human = new RecordedPlayer<>(new HumanPlayer("Human"));
-        RecordedPlayer<AiPlayer> ai = new RecordedPlayer<>(new AiPlayer("Computer", m));
-        m.setPlayers(human, ai);
+        RecordedPlayer<AiPlayer> ai = new RecordedPlayer<>(new AiPlayer("Computer", match));
+        c = new Competition(match, human, ai);
 
         int gain;
-        System.out.println(m);
-        while (m.isFinished() == -1) {
-            gain = m.move();
-            System.out.println("Player " + human + " does " + human.getLastMove() + " (gain " + gain + ")");
+        System.out.println(match);
+        while (c.isFinished() == -1) {
+            gain = c.move();
+            System.out.println("Player " + human + " does " + c.getLastMove() + " (gain " + gain + ")");
 
-            gain = m.move();
-            System.out.println("Player " + ai + " does " + ai.getLastMove() + " (gain " + gain + ")");
-            System.out.println(m.toString());
+            gain = c.move();
+            System.out.println("Player " + ai + " does " + c.getLastMove() + " (gain " + gain + ")");
+            System.out.println(match.toString());
         }
+
     }
 
     void detMatch() {
-        m = new MatchBuilder().setPlayers(2).createMatch();
+        Match match = new MatchBuilder().setPlayers(2).createMatch();
         SimplePlayer naive = new SimplePlayer("Naive player");
-        RecordedPlayer<AiPlayer> ai = new RecordedPlayer<>(new AiPlayer("Computer", m));
-        m.setPlayers(naive, ai);
+        RecordedPlayer<AiPlayer> ai = new RecordedPlayer<>(new AiPlayer("Computer", match));
+        c = new Competition(match, naive, ai);
 
-        while (m.isFinished() == -1) {
+        while (c.isFinished() == -1) {
 
-            Iterator<Integer> possibleMoves = m.getPossibleMoves();
+            Iterator<Integer> possibleMoves = c.getMatch().getPossibleMoves();
             if (!possibleMoves.hasNext()) {
                 System.err.println("Naive lost");
                 break;
             }
             naive.setMove(possibleMoves.next());
 
-            int gain = m.move();
+            int gain = c.move();
             System.out.println("Player " + naive + " does " + naive.getMove() + " (gain " + gain + ")");
-            System.out.println(m);
+            System.out.println(c.getMatch());
 
-            gain = m.move();
+            gain = c.move();
             System.out.println("Player " + ai + " does " + ai.getMove() + " (gain " + gain + ")");
-            System.out.println(m);
+            System.out.println(c.getMatch());
         }
     }
 
 
     int aiMatch(int depth1, int depth2) {
-        m = new MatchBuilder().setPlayers(2).createMatch();
-        RecordedPlayer<AiPlayer> ai1 = new RecordedPlayer<>(new AiPlayer("-- 1 --", m, depth1));
-        RecordedPlayer<AiPlayer> ai2 = new RecordedPlayer<>(new AiPlayer("-- 2 --", m, depth2));
-        m.setPlayers(ai1, ai2);
+        Match match = new MatchBuilder().setPlayers(2).createMatch();
+        RecordedPlayer<AiPlayer> ai1 = new RecordedPlayer<>(new AiPlayer("-- 1 --", match, depth1));
+        RecordedPlayer<AiPlayer> ai2 = new RecordedPlayer<>(new AiPlayer("-- 2 --", match, depth2));
+        c = new Competition(match, ai1, ai2);
 
         int gain, finished;
-        System.out.println(m);
+        System.out.println(c.getMatch());
         while (true) {
-            if ((finished = m.isFinished()) != -1) {
+            if ((finished = c.isFinished()) != -1) {
                 break;
             }
-            gain = m.move();
+            gain = c.move();
             System.out.println("Player " + ai1 + " does " + ai1.getLastMove() + " (gain " + gain + ")");
 
-            if ((finished = m.isFinished()) != -1) {
+            if ((finished = c.isFinished()) != -1) {
                 break;
             }
-            gain = m.move();
+            gain = c.move();
             System.out.println("Player " + ai2 + " does " + ai2.getLastMove() + " (gain " + gain + ")");
-            System.out.println(m.toString());
+            System.out.println(c.getMatch());
         }
-        System.out.println("Player " + m.getPlayers()[finished] + " wins");
+        System.out.println("Player " + c.getPlayers()[finished] + " wins");
         return finished;
     }
 }

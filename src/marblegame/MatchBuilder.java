@@ -5,14 +5,22 @@ import marblegame.players.Player;
 import java.util.Arrays;
 
 public class MatchBuilder {
-    private Match.BoardState board;
+    private State board;
     private int startAmount = 4;
     private int fieldsPerPlayer = 6;
     private int targetAmount = 3;
     private int target2Amount = 2;
     private Player[] players;
 
-    public MatchBuilder setBoard(Match.BoardState board) {
+    public MatchBuilder(int players) {
+        this.players = new Player[players];
+    }
+
+    public MatchBuilder(Player... players) {
+        this.players = players;
+    }
+
+    public MatchBuilder setBoard(State board) {
         this.board = board;
         return this;
     }
@@ -28,8 +36,11 @@ public class MatchBuilder {
     }
 
     public Match createMatch() {
+        if (players == null) {
+            throw new IllegalStateException("The players should be set");
+        }
         if (board == null)
-            board = new Match.BoardState(
+            board = new State(
                     fill(startAmount, fieldsPerPlayer * players.length),
                     fill(0),
                     0
@@ -42,7 +53,7 @@ public class MatchBuilder {
         for (int i = 0; i < players.length; i++) {
             endFields[i] = (i + 1) * fieldsPerPlayer - 1;
         }
-        return new Match(board, startFields, endFields, fill(targetAmount), fill(target2Amount), players);
+        return new Match(board, startFields, endFields, fill(targetAmount), fill(target2Amount));
     }
 
     private int[] fill(int val) {

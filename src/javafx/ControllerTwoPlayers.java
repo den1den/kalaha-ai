@@ -11,6 +11,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
+import marblegame.Competition;
 import marblegame.Match;
 import marblegame.MatchBuilder;
 
@@ -24,7 +25,7 @@ public abstract class ControllerTwoPlayers {
     public GridPane gridpane;
     public Label leftScoreLabel;
     public Label rightScoreLabel;
-    protected Match match;
+    protected Competition competition;
     int leftScore = 0;
     int rightScore = 0;
 
@@ -45,12 +46,11 @@ public abstract class ControllerTwoPlayers {
     }
 
     protected void startNewGame() {
-        match = new MatchBuilder().setPlayers(2).createMatch();
-        createNewPlayers();
+        competition = createNewPlayers(new MatchBuilder().setPlayers(2).createMatch());
         setBoardText();
     }
 
-    protected abstract void createNewPlayers();
+    protected abstract Competition createNewPlayers(Match match);
 
 
     void setRightScoreText() {
@@ -68,7 +68,7 @@ public abstract class ControllerTwoPlayers {
     }
 
     protected void setBoardText() {
-        int[] fields = match.getBoard().getFields();
+        int[] fields = competition.getMatch().getState().getFields();
         int i = 0;
         for (Node child :
                 gridpane.getChildren()) {

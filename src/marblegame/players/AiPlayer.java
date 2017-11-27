@@ -1,6 +1,7 @@
 package marblegame.players;
 
 import marblegame.Match;
+import marblegame.State;
 
 import java.util.Iterator;
 
@@ -9,10 +10,10 @@ import java.util.Iterator;
  */
 public class AiPlayer extends NamedPlayer {
 
-    public static final int DEFAULT_SEARCH_DEPTH = 13;
+    private static final int DEFAULT_SEARCH_DEPTH = 13;
 
     private boolean running = false;
-    final Match match;
+    private final Match match;
     private int maxDepth;
 
     public AiPlayer(String name, Match match, int maxDepth) {
@@ -34,8 +35,8 @@ public class AiPlayer extends NamedPlayer {
 
         while (running && depth <= maxDepth) {
             //System.out.println("indexing depth " + depth);
-            for (Iterator<Integer> it = Match.AvailableMoveIterator.from(match, match.getBoard()); it.hasNext(); ) {// newBS correct?
-                Match.BoardState newBs = match.getBoard();
+            for (Iterator<Integer> it = Match.AvailableMoveIterator.from(match, match.getState()); it.hasNext(); ) {// newBS correct?
+                State newBs = match.getState();
                 int move = it.next();
                 int win = match.move(move, newBs);
 
@@ -44,6 +45,7 @@ public class AiPlayer extends NamedPlayer {
                     bestMove = move;
                     bestRating = r;
                     depthFound = depth;
+                    System.out.println("bestMove=" + move + " (r=" + bestRating + ", depth=" + depthFound + ")");
                 }
             }
             depth++;
@@ -57,11 +59,11 @@ public class AiPlayer extends NamedPlayer {
     /**
      * use a-b-pruning
      */
-    public int calcMove() {
+    private int calcMove() {
         return calcMove(maxDepth);
     }
 
-    private Integer AlphaBetaMin(Match.BoardState boardState, int depthLimit, int depth, int a, int b) {
+    private Integer AlphaBetaMin(State boardState, int depthLimit, int depth, int a, int b) {
         //System.out.println("AlphaBetaMin with Depth " + depth + ", and depth limit " + depthLimit);
         if (depth >= depthLimit) {
             return rating(boardState);
@@ -74,7 +76,7 @@ public class AiPlayer extends NamedPlayer {
         while (availableMoveIterator.hasNext()) {
             int next = availableMoveIterator.next();
 
-            Match.BoardState newBoardState = new Match.BoardState(boardState);
+            State newBoardState = new State(boardState);
             int move = match.move(next, newBoardState);
             if (move != 0) {
                 // Someone won
@@ -91,7 +93,7 @@ public class AiPlayer extends NamedPlayer {
         return b;
     }
 
-    private Integer AlphaBetaMax(Match.BoardState boardState, int depthLimit, int depth, int a, int b) {
+    private Integer AlphaBetaMax(State boardState, int depthLimit, int depth, int a, int b) {
         int rating = rating(boardState);
         if (!running || depth >= depthLimit) {
             return rating;
@@ -103,7 +105,7 @@ public class AiPlayer extends NamedPlayer {
         Match.AvailableMoveIterator moveIterator = Match.AvailableMoveIterator.from(match, boardState);
         while (moveIterator.hasNext()) {
             Integer next = moveIterator.next();
-            Match.BoardState newBoardState = new Match.BoardState(boardState);
+            State newBoardState = new State(boardState);
             int move = match.move(next, newBoardState);
             a = Math.max(a, AlphaBetaMin(newBoardState, depthLimit, depth + 1, a, b));
             if (b <= a) {
@@ -113,7 +115,7 @@ public class AiPlayer extends NamedPlayer {
         return a;
     }
 
-    private int rating(Match.BoardState boardState) {
+    private int rating(State boardState) {
         return boardState.getPoints();
     }
 
