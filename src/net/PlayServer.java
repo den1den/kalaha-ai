@@ -1,6 +1,7 @@
 package net;
 
 import marblegame.Match;
+import marblegame.Util;
 import marblegame.players.AiPlayer;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -25,14 +26,18 @@ public class PlayServer {
 
     public PlayServer() throws IOException {
         serverSocket = new ServerSocket(6020);
-        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
+        int nThreads;
+        nThreads = Util.isLenovo() ? 2 : 8;
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
     }
 
     final static Map<String, Integer> cache = new ConcurrentHashMap<>();
 
     public static int doAiMove(Match a) {
         AiPlayer aiPlayer = new AiPlayer("Server", a);
-        int move = aiPlayer.calcMove(10); // stromssd up to 17 17
+        int maxDepth;
+        maxDepth = Util.isLenovo() ? 10 : 15;
+        int move = aiPlayer.calcMove(maxDepth);
         return move;
     }
 

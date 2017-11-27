@@ -19,4 +19,8 @@ public class Util {
         }
         return ints;
     }
+
+    public static boolean isLenovo() {
+        return "dennis".equals(System.getenv("USER"));
+    }
 }

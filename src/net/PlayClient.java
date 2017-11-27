@@ -2,6 +2,7 @@ package net;
 
 import marblegame.Match;
 import marblegame.MatchBuilder;
+import marblegame.Util;
 import org.json.simple.JSONObject;
 
 import java.io.BufferedReader;
@@ -18,12 +19,14 @@ public class PlayClient {
     private BufferedReader reader;
 
     public PlayClient() throws IOException {
-        String host = "localhost";
+        String host;
+        host = Util.isLenovo() ? "vandenbrand.eu" : "localhost";
         int port = 6020;
         try {
             socket = new Socket(host, port);
             writer = new PrintWriter(socket.getOutputStream(), true);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            System.out.println("Connected to " + host + ":" + port);
         } catch (ConnectException e) {
             System.err.println("Could not connect to " + host + ":" + port);
         }
