@@ -12,23 +12,27 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.Executor;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class PlayServer {
     static final String MSG_CLOSE = "close";
     private boolean running = true;
     private ServerSocket serverSocket;
-    private Executor executor;
+    private ThreadPoolExecutor executor;
 
     public PlayServer() throws IOException {
         serverSocket = new ServerSocket(6020);
-        executor = Executors.newFixedThreadPool(1);
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
     }
+
+    final static Map<String, Integer> cache = new ConcurrentHashMap<>();
 
     public static int doAiMove(Match a) {
         AiPlayer aiPlayer = new AiPlayer("Server", a);
-        int move = aiPlayer.calcMove(14);
+        int move = aiPlayer.calcMove(10); // stromssd up to 17 17
         return move;
     }
 
@@ -38,7 +42,6 @@ public class PlayServer {
 
     void run() throws IOException {
         while (running) {
-            System.out.println("Server listening...");
             Socket socket = serverSocket.accept();
             executor.execute(new Req(socket));
         }
@@ -54,18 +57,23 @@ public class PlayServer {
             this.socket = socket;
             writer = new PrintWriter(socket.getOutputStream(), true);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            System.out.println("Connection opened to " + this.socket.getInetAddress());
         }
 
         public void process(String read) throws ParseException {
-            JSONObject jsonObject = (JSONObject) parser.parse(read);
-            Match m = Match.Serializer.fromJSONObject(jsonObject);
-            int move = doAiMove(m);
+            Integer move;
+            if ((move = cache.get(read)) == null) {
+                JSONObject jsonObject = (JSONObject) parser.parse(read);
+                Match m = Match.Serializer.fromJSONObject(jsonObject);
+                move = doAiMove(m);
+                cache.put(read, move);
+            }
             writer.println(move);
         }
 
         @Override
         public void run() {
-            String read;
+            String read = null;
             try {
                 do {
                     read = reader.readLine();
@@ -74,11 +82,15 @@ public class PlayServer {
                     }
                     process(read);
                 } while (true);
-            } catch (IOException | ParseException e) {
+            } catch (IOException e) {
                 throw new Error(e);
+            } catch (ParseException e) {
+                System.err.println("Could not parse: " + read);
             } finally {
                 try {
                     socket.close();
+                    System.out.println("Connection closed to " + this.socket.getInetAddress()
+                            + " (" + (executor.getQueue().size() + executor.getActiveCount() - 1) + " remaining)");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
