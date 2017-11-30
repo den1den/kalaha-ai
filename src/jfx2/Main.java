@@ -68,7 +68,7 @@ public class Main {
         final Player[] players = new Player[2];
         players[0] = humanPlayer;
         this.players = Collections.synchronizedList(Arrays.asList(players));
-        this.match = new MatchBuilder(players.length).createMatch();
+        this.match = new MatchBuilder(players.length).createComputerWinMatch();
         this.competition = new Competition(match, players);
     }
 

@@ -131,7 +131,7 @@ public class Match {
         int last = (i == 0 ? board.fields.length - 1 : i - 1);
         int nextLast = (last == 0 ? board.fields.length - 1 : last - 1);
 
-        if (onlyWinOnOtherTeritory && !isInRange(last, board)) {
+        if (onlyWinOnOtherTeritory && isInRange(last, board)) {
             // The final stones are not taken away
             // There is no win
             win = 0;

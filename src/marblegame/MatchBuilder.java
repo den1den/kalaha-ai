@@ -65,4 +65,28 @@ public class MatchBuilder {
         Arrays.fill(arr, val);
         return arr;
     }
+
+    public Match createComputerWinMatch() {
+        if (players == null) {
+            throw new IllegalStateException("The players should be set");
+        }
+        if (board == null)
+            board = new BoardState(
+                    new int[]{
+                            2, 2, 2, 2, 2, 2,
+                            4, 4, 4, 4, 4, 1
+                    },
+                    fill(0),
+                    0
+            );
+        int[] startFields = new int[players.length];
+        for (int i = 0; i < players.length; i++) {
+            startFields[i] = i * fieldsPerPlayer;
+        }
+        int[] endFields = new int[players.length];
+        for (int i = 0; i < players.length; i++) {
+            endFields[i] = (i + 1) * fieldsPerPlayer - 1;
+        }
+        return new Match(board, startFields, endFields, fill(targetAmount), fill(target2Amount));
+    }
 }
