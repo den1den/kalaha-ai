@@ -62,7 +62,7 @@ public class PlayClient {
             Match m;
             int response;
             m = getMatch();
-            while (!m.isPlayerWinner()) {
+            while (!m.isPlayerWinnerByPoints()) {
                 response = getResponseImpl(m);
                 m.move(response);
                 System.out.println("move = " + response);

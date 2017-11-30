@@ -31,16 +31,20 @@ public class BoardState {
         );
     }
 
-    int getMaxOtherPlayerPoints() {
+    public int getMaxOtherPlayerPoints(int player) {
         int max = -1;
         for (int i = 0; i < points.length; i++) {
-            if (i != turn) {
+            if (i != player) {
                 if (points[i] > max) {
                     max = points[i];
                 }
             }
         }
         return max;
+    }
+
+    int getMaxOtherPlayerPoints() {
+        return getMaxOtherPlayerPoints(turn);
     }
 
     int remainingPoints() {
@@ -97,6 +101,10 @@ public class BoardState {
 
     public int getPoints() {
         return points[turn];
+    }
+
+    int getPlayerPoints(int player) {
+        return points[player];
     }
 
     int getPlayerPoints() {

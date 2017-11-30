@@ -89,4 +89,23 @@ public class MatchBuilder {
         }
         return new Match(board, startFields, endFields, fill(targetAmount), fill(target2Amount));
     }
+
+    public Match createHumanWonMatch() {
+        Match m = createMatch();
+        m.boardState.points[0] = 1000;
+        return m;
+    }
+
+    public Match createHumanWinMatch() {
+        Match m = createMatch();
+        m.boardState = new BoardState(
+                new int[]{
+                        4, 4, 4, 4, 4, 1,
+                        2, 2, 2, 2, 2, 2
+                },
+                fill(0),
+                0
+        );
+        return m;
+    }
 }

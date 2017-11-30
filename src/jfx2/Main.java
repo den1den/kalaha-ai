@@ -20,17 +20,13 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
-import marblegame.BoardState;
 import marblegame.Competition;
 import marblegame.Match;
 import marblegame.MatchBuilder;
-import marblegame.players.NetworkPlayer;
 import marblegame.players.Player;
 import marblegame.players.SimplePlayer;
+import net.PlayClient;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -49,9 +45,9 @@ public class Main {
     public Text opponentText;
     public Text leftScoreText;
     public Text rightScoreText;
+    public Text statusTextLeft;
     private SimplePlayer humanPlayer;
-    private List<Player> players;
-    private Match match;
+    private PlayClient networkPlayer;
     private Competition competition;
     private SetupConnectionService setupConnectionService = new SetupConnectionService();
     private DoNetworkMoveService moveService = new DoNetworkMoveService();
@@ -60,15 +56,19 @@ public class Main {
     private SimpleIntegerProperty opponentSelectedMove = new SimpleIntegerProperty(-1);
 
     public Main() {
+        Match match;
+        final Player[] players;
         setupConnectionService.setExecutor(networkWorkerExecutor);
         moveService.setExecutor(networkWorkerExecutor);
 
         humanPlayer = new SimplePlayer("Human");
 
-        final Player[] players = new Player[2];
+        players = new Player[2];
         players[0] = humanPlayer;
-        this.players = Collections.synchronizedList(Arrays.asList(players));
-        this.match = new MatchBuilder(players.length).createComputerWinMatch();
+        match = new MatchBuilder(players.length).createMatch();
+        match = new MatchBuilder(players.length).createComputerWinMatch();
+        match = new MatchBuilder(players.length).createHumanWinMatch();
+        // match = new MatchBuilder(players.length).createHumanWonMatch();
         this.competition = new Competition(match, players);
     }
 
@@ -96,9 +96,9 @@ public class Main {
             final String host = newValue;
             setupConnectionService.setHost(host);
             setupConnectionService.setOnSucceeded(event -> {
-                NetworkPlayer result = (NetworkPlayer) event.getSource().getValue();
+                PlayClient result = (PlayClient) event.getSource().getValue();
                 if (result.isConnected()) {
-                    players.set(1, result);
+                    networkPlayer = result;
                     opponentText.setText("Connected to " + host);
                 } else {
                     opponentText.setText("Could not connect to " + host);
@@ -117,15 +117,15 @@ public class Main {
         opponentSelectedMove.addListener(new SelectionChangeListener(selectedOpponentColor));
 
         // Set labels
-        displayBoardState(competition.getState());
+        displayBoardState();
     }
 
-    private void displayBoardState(BoardState boardState) {
-        int[] fields = boardState.getFields();
+    private void displayBoardState() {
+        int[] fields = competition.getFields();
         for (int i = 0; i < fields.length; i++) {
             setField(i, fields[i]);
         }
-        int[] points = boardState.getAllPoints();
+        int[] points = competition.getPoints();
         leftScoreText.setText("Computer: " + points[1]);
         rightScoreText.setText("Human: " + points[0]);
     }
@@ -181,10 +181,10 @@ public class Main {
         }
 
         // Do human move
-        final BoardState preHumanBoardState = new BoardState(competition.getState());
+        final int[] preHumanBoardState = competition.getFields();
         int gain = competition.move();
         int move = competition.getLastMove();
-        final BoardState preNetworkBoardState = new BoardState(competition.getState());
+        final int[] preNetworkBoardState = competition.getFields();
 
         // Start human animation
         animatorService.setTask(new MoveAnimationTask(selectedMove, move, false, preHumanBoardState));
@@ -192,6 +192,13 @@ public class Main {
         animatorService.reset();
         animatorService.start();
         System.out.println("Started human animation");
+
+        int winner;
+        winner = competition.calcWinner();
+        if (winner != -1) {
+            statusTextLeft.setText("Winner is: " + (winner == 0 ? "Human" : "Computer"));
+            return;
+        }
 
         // Start network request
         moveService.cancel();
@@ -230,10 +237,11 @@ public class Main {
                 }
             }
         }));
-        moveService.start();
+        if (competition.canPlay())
+            moveService.start();
     }
 
-    private class SetupConnectionService extends RerunnableService<NetworkPlayer> {
+    private class SetupConnectionService extends RerunnableService<PlayClient> {
         String host;
 
         private void setHost(String host) {
@@ -241,12 +249,12 @@ public class Main {
         }
 
         @Override
-        protected Task<NetworkPlayer> createTask() {
+        protected Task<PlayClient> createTask() {
             final String host = this.host;
-            return new Task<NetworkPlayer>() {
+            return new Task<PlayClient>() {
                 @Override
-                protected NetworkPlayer call() throws Exception {
-                    return new NetworkPlayer(host, match);
+                protected PlayClient call() throws Exception {
+                    return new PlayClient(host);
                 }
             };
         }
@@ -255,11 +263,12 @@ public class Main {
     private class DoNetworkMoveService extends RerunnableService<Integer> {
         @Override
         protected Task<Integer> createTask() {
-            final Player player = players.get(1);
+            final PlayClient player = networkPlayer;
+            final Match match = competition.getMatch();
             return new Task<Integer>() {
                 @Override
                 protected Integer call() throws Exception {
-                    int move = player.getMove();
+                    int move = player.getResponse(match);
                     if (move == -1) {
                         throw new Error("Could not get move of " + player);
                     }
@@ -272,20 +281,19 @@ public class Main {
     private class MoveAnimationTask extends Task {
         final boolean animateFirst;
         final int moveIndex;
-        final BoardState state;
+        final int[] fields;
         final IntegerProperty selectedMove;
 
-        MoveAnimationTask(IntegerProperty selectedMove, int moveIndex, boolean animateFirst, BoardState state) {
+        MoveAnimationTask(IntegerProperty selectedMove, int moveIndex, boolean animateFirst, int[] fields) {
             this.selectedMove = selectedMove;
             this.animateFirst = animateFirst;
             this.moveIndex = moveIndex;
-            this.state = state;
+            this.fields = fields;
         }
 
         @Override
         protected Object call() throws Exception {
             try {
-                int[] fields = state.getFields();
                 int stones = fields[moveIndex];
                 synchronized (this) {
                     setField(moveIndex, 0);
@@ -299,7 +307,7 @@ public class Main {
                         selectedMove.set(fieldIndex);
                         wait(ANIMATION_TIMEOUT);
                     }
-                    displayBoardState(competition.getState());
+                    displayBoardState();
                     selectedMove.set(-1);
                 }
             } catch (Exception e) {

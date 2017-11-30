@@ -28,7 +28,7 @@ public class Match {
         this.target2Amount = target2Amount;
     }
 
-    private static boolean isPlayerWinner(BoardState boardState) {
+    private static boolean isPlayerWinnerByPoints(BoardState boardState) {
         return boardState.getPlayerPoints() > boardState.getMaxOtherPlayerPoints() + boardState.remainingPoints();
     }
 
@@ -46,12 +46,20 @@ public class Match {
         return isFinished(boardState);
     }
 
+    private static boolean isPlayerWinnerByPoints(BoardState boardState, int player) {
+        return boardState.getPlayerPoints(player) > boardState.getMaxOtherPlayerPoints(player) + boardState.remainingPoints();
+    }
+
+    int getNPlayers() {
+        return startFields.length;
+    }
+
     /**
      * @param board
-     * @return -1 iff not finished, the winner index otherwise
+     * @return -1 iff not finished, the calcWinner index otherwise
      */
     int isFinished(BoardState board) {
-        if (isPlayerWinner(board)) {
+        if (isPlayerWinnerByPoints(board)) {
             return board.turn;
         }
         int min = startFields[board.turn];
@@ -64,8 +72,12 @@ public class Match {
         return 1 - board.turn;
     }
 
-    public boolean isPlayerWinner() {
-        return isPlayerWinner(boardState);
+    public boolean isPlayerWinnerByPoints(int player) {
+        return isPlayerWinnerByPoints(boardState, player);
+    }
+
+    public boolean isPlayerWinnerByPoints() {
+        return isPlayerWinnerByPoints(boardState);
     }
 
     public Iterator<Integer> getPossibleMoves() {
@@ -83,16 +95,16 @@ public class Match {
 
     public String toString(BoardState board) {
         StringBuilder s = new StringBuilder();
-        for (int i = 0; i < startFields.length; i++) {
+        for (int i = 0; i < getNPlayers(); i++) {
             s.append(System.lineSeparator()).append(board.toStringPlayer(i));
         }
         return s.toString();
     }
 
     public String toString(BoardState board, Player[] players, boolean showTurn, boolean showIndices) {
-        int prevTurn = board.turn == 0 ? startFields.length - 1 : board.turn - 1;
+        int prevTurn = board.turn == 0 ? getNPlayers() - 1 : board.turn - 1;
         String s = "";
-        for (int i = 0; i < startFields.length; i++) {
+        for (int i = 0; i < getNPlayers(); i++) {
             Player p = players[i];
 
             if (showIndices && i == 0) {
@@ -149,7 +161,7 @@ public class Match {
             }
         }
 
-        if (isPlayerWinner(board)) {
+        if (isPlayerWinnerByPoints(board)) {
             win = Integer.MAX_VALUE;
         }
 
@@ -160,7 +172,7 @@ public class Match {
 
     private void nextTurn(BoardState board) {
         board.turn++;
-        board.turn %= startFields.length;
+        board.turn %= getNPlayers();
     }
 
     public BoardState getBoardState() {
@@ -171,12 +183,42 @@ public class Match {
         return boardState.turn;
     }
 
+    int calcWinner() {
+        boolean[] canMove = new boolean[getNPlayers()];
+        for (int i = 0; i < canMove.length; i++) {
+            canMove[i] = AvailableMoveIterator.from(this, i).hasNext();
+        }
+
+        for (int i = 0; i < getNPlayers(); i++) {
+            if (isPlayerWinnerByPoints(i)) {
+                return i;
+            }
+            boolean otherBlocked = true;
+            for (int i2 = 0; i2 < canMove.length; i2++) {
+                if (i != i2 && canMove[i2]) {
+                    otherBlocked = false;
+                    break;
+                }
+            }
+            if (otherBlocked) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public static class AvailableMoveIterator implements Iterator<Integer> {
         private final int[] fields;
 
         private boolean nextSet = false;
         private int current;
         private int max;
+
+        public static AvailableMoveIterator from(Match match, int player) {
+            int min = match.startFields[player];
+            int max = match.endFields[player];
+            return new AvailableMoveIterator(match.getBoardState().fields, min, max);
+        }
 
         public static AvailableMoveIterator from(@NotNull Match match) {
             return from(match, match.getBoardState());

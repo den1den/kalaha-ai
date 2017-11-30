@@ -2,6 +2,8 @@ package marblegame;
 
 import marblegame.players.Player;
 
+import java.util.Arrays;
+
 public class Competition {
     private Match match;
     private Player[] players;
@@ -54,7 +56,19 @@ public class Competition {
         return match.isInRange(moveIndex);
     }
 
-    public BoardState getState() {
-        return match.getBoardState();
+    public int[] getFields() {
+        return Arrays.copyOf(match.getBoardState().fields, match.getBoardState().fields.length);
+    }
+
+    public int calcWinner() {
+        return match.calcWinner();
+    }
+
+    public int[] getPoints() {
+        return match.boardState.points;
+    }
+
+    public boolean canPlay() {
+        return Match.AvailableMoveIterator.from(match).hasNext();
     }
 }
