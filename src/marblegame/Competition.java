@@ -32,7 +32,10 @@ public class Competition {
     public int move() {
         int turn = getTurn();
         Player player = players[turn];
-        int move = player.getMove();
+        return move(player.getMove());
+    }
+
+    public int move(int move) {
         int gain = match.move(move);
         this.lastMove = move;
         this.moves++;
@@ -49,5 +52,9 @@ public class Competition {
 
     public boolean isInRange(int moveIndex) {
         return match.isInRange(moveIndex);
+    }
+
+    public BoardState getState() {
+        return match.getBoardState();
     }
 }

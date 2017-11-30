@@ -7,10 +7,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
@@ -31,7 +28,24 @@ public class PlayServer {
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
     }
 
-    final static Map<String, Integer> cache = new ConcurrentHashMap<>();
+    private static File cacheFile;
+    private static Map<String, Integer> cache = null;
+
+    static {
+        cacheFile = new File("server-cache.obj");
+        if (cacheFile.exists()) {
+            try (ObjectInputStream fio = new ObjectInputStream(new FileInputStream(cacheFile))) {
+                cache = (ConcurrentHashMap) fio.readObject();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        if (cache == null) {
+            cache = new ConcurrentHashMap<>();
+        }
+    }
 
     public static int doAiMove(Match a) {
         AiPlayer aiPlayer = new AiPlayer("Server", a);
@@ -46,9 +60,26 @@ public class PlayServer {
     }
 
     void run() throws IOException {
+        System.out.println("Server is running on " + serverSocket.getInetAddress());
         while (running) {
             Socket socket = serverSocket.accept();
             executor.execute(new Req(socket));
+        }
+    }
+
+    private void saveCache() {
+        try {
+            cacheFile.createNewFile();
+            try (
+                    ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream(cacheFile))) {
+                synchronized (cache) {
+                    writer.writeObject(cache);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -83,6 +114,7 @@ public class PlayServer {
                 do {
                     read = reader.readLine();
                     if (MSG_CLOSE.equals(read) || read == null) {
+                        saveCache();
                         break;
                     }
                     process(read);

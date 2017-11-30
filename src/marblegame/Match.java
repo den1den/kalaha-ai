@@ -13,51 +13,51 @@ import java.util.NoSuchElementException;
  * Created by dennis on 2-3-17.
  */
 public class Match {
-    State state;
+    BoardState boardState;
     final int[] startFields;
     final int[] endFields;
     final int[] targetAmount;
     final int[] target2Amount;
     private boolean onlyWinOnOtherTeritory = true;
 
-    public Match(State state, int[] startFields, int[] endFields, int[] targetAmount, int[] target2Amount) {
-        this.state = state;
+    public Match(BoardState boardState, int[] startFields, int[] endFields, int[] targetAmount, int[] target2Amount) {
+        this.boardState = boardState;
         this.startFields = startFields;
         this.endFields = endFields;
         this.targetAmount = targetAmount;
         this.target2Amount = target2Amount;
     }
 
-    private static boolean isPlayerWinner(State state) {
-        return state.getPlayerPoints() > state.getMaxOtherPlayerPoints() + state.remainingPoints();
+    private static boolean isPlayerWinner(BoardState boardState) {
+        return boardState.getPlayerPoints() > boardState.getMaxOtherPlayerPoints() + boardState.remainingPoints();
     }
 
-    public boolean isInRange(int move, State board) {
+    public boolean isInRange(int move, BoardState board) {
         int min = startFields[board.turn];
         int max = endFields[board.turn];
-        return move >= min && move <= max && getState().fields[move] > 0;
+        return move >= min && move <= max && getBoardState().fields[move] > 0;
     }
 
     public boolean isInRange(int move) {
-        return isInRange(move, state);
+        return isInRange(move, boardState);
     }
 
     int isFinished() {
-        return isFinished(state);
+        return isFinished(boardState);
     }
 
     /**
      * @param board
      * @return -1 iff not finished, the winner index otherwise
      */
-    int isFinished(State board) {
+    int isFinished(BoardState board) {
         if (isPlayerWinner(board)) {
             return board.turn;
         }
         int min = startFields[board.turn];
         int max = endFields[board.turn];
         for (int i = min; i <= max; i++) {
-            if (getState().fields[i] > 0) {
+            if (getBoardState().fields[i] > 0) {
                 return -1;
             }
         }
@@ -65,7 +65,7 @@ public class Match {
     }
 
     public boolean isPlayerWinner() {
-        return isPlayerWinner(state);
+        return isPlayerWinner(boardState);
     }
 
     public Iterator<Integer> getPossibleMoves() {
@@ -74,14 +74,14 @@ public class Match {
 
     @Override
     public String toString() {
-        return state.toString();
+        return boardState.toString();
     }
 
-    public String toString(State board, Player[] players) {
+    public String toString(BoardState board, Player[] players) {
         return toString(board, players, true, true);
     }
 
-    public String toString(State board) {
+    public String toString(BoardState board) {
         StringBuilder s = new StringBuilder();
         for (int i = 0; i < startFields.length; i++) {
             s.append(System.lineSeparator()).append(board.toStringPlayer(i));
@@ -89,7 +89,7 @@ public class Match {
         return s.toString();
     }
 
-    public String toString(State board, Player[] players, boolean showTurn, boolean showIndices) {
+    public String toString(BoardState board, Player[] players, boolean showTurn, boolean showIndices) {
         int prevTurn = board.turn == 0 ? startFields.length - 1 : board.turn - 1;
         String s = "";
         for (int i = 0; i < startFields.length; i++) {
@@ -111,10 +111,10 @@ public class Match {
     }
 
     public int move(int moveIndex) {
-        return move(moveIndex, state);
+        return move(moveIndex, boardState);
     }
 
-    public int move(int moveIndex, State board) {
+    public int move(int moveIndex, BoardState board) {
         int win = 0;
         int stones = board.fields[moveIndex];
         if (stones <= 0) {
@@ -158,17 +158,17 @@ public class Match {
         return win;
     }
 
-    private void nextTurn(State board) {
+    private void nextTurn(BoardState board) {
         board.turn++;
         board.turn %= startFields.length;
     }
 
-    public State getState() {
-        return new State(state);
+    public BoardState getBoardState() {
+        return new BoardState(boardState);
     }
 
     public int getTurn() {
-        return state.turn;
+        return boardState.turn;
     }
 
     public static class AvailableMoveIterator implements Iterator<Integer> {
@@ -179,10 +179,10 @@ public class Match {
         private int max;
 
         public static AvailableMoveIterator from(@NotNull Match match) {
-            return from(match, match.getState());
+            return from(match, match.getBoardState());
         }
 
-        public static AvailableMoveIterator from(@NotNull Match match, @NotNull State boardState) {
+        public static AvailableMoveIterator from(@NotNull Match match, @NotNull BoardState boardState) {
             int min = match.startFields[boardState.turn];
             int max = match.endFields[boardState.turn];
             return new AvailableMoveIterator(boardState.fields, min, max);
@@ -236,7 +236,7 @@ public class Match {
     public static class Serializer {
         public static JSONObject toJson(Match match) {
             JSONObject r = new JSONObject();
-            r.put("state", State.Serializer.toJson(match.state));
+            r.put("state", BoardState.Serializer.toJson(match.boardState));
             r.put("startFields", Util.toArray(match.startFields));
             r.put("endFields", Util.toArray(match.endFields));
             r.put("targetAmount", Util.toArray(match.targetAmount));
@@ -246,7 +246,7 @@ public class Match {
 
         public static Match fromJSONObject(JSONObject object) {
             return new Match(
-                    State.Serializer.fromJSONObject((JSONObject) object.get("state")),
+                    BoardState.Serializer.fromJSONObject((JSONObject) object.get("state")),
                     Util.toArray((JSONArray) object.get("startFields")),
                     Util.toArray((JSONArray) object.get("endFields")),
                     Util.toArray((JSONArray) object.get("targetAmount")),

@@ -1,10 +1,7 @@
 package marblegame;
 
 
-import marblegame.players.AiPlayer;
-import marblegame.players.HumanPlayer;
-import marblegame.players.RecordedPlayer;
-import marblegame.players.SimplePlayer;
+import marblegame.players.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,9 +16,21 @@ public class Main {
     Competition c;
 
     public static void main(String[] args) throws IOException {
+        PrintStream outStream = null;
         long t0 = System.currentTimeMillis();
         Main m = new Main();
 
+        //outStream = m.recordedAiBattle();
+        m.manualInputMatch();
+
+        String endResult = "Running time: " + (System.currentTimeMillis() - t0) + " ms";
+        if (outStream != null)
+            outStream.println(endResult);
+        System.out.println(endResult);
+    }
+
+    private PrintStream recordedAiBattle() throws IOException {
+        Main m = this;
         File outputFile = new File("ai-self-play-winners.txt");
         File output2File = new File("ai-self-play-moves.txt");
         // if(outputFile.exists()) throw new IOException("File still exists");
@@ -44,12 +53,9 @@ public class Main {
             out2Stream.println();
         }
 
-        String endResult = "Running time: " + (System.currentTimeMillis() - t0) + " ms";
-        outStream.println(endResult);
-        System.out.println(endResult);
-
         outStream.close();
         out2Stream.close();
+        return outStream;
     }
 
     void unsetMatch() {
@@ -69,6 +75,27 @@ public class Main {
             System.out.println(match.toString());
         }
 
+    }
+
+    void manualInputMatch() {
+        Match match = new MatchBuilder().setPlayers(2).createMatch();
+        //RecordedPlayer<HumanPlayer> human = new RecordedPlayer<>(new HumanPlayer("Human"));
+        RecordedPlayer<NaivePlayer> human = new RecordedPlayer<>(new NaivePlayer("First move", match));
+        String host;
+        host = "vandenbrand.eu";
+        host = "localhost";
+        NetworkPlayer ai = new NetworkPlayer(host, match);
+        c = new Competition(match, human, ai);
+
+        while (c.isFinished() == -1) {
+            System.out.println(c.getMatch());
+            // Ask human move
+            int gain = c.move();
+            System.out.println("gain = " + gain);
+
+            gain = c.move();
+            System.out.println("gain = " + gain);
+        }
     }
 
     void detMatch() {
@@ -95,7 +122,6 @@ public class Main {
             System.out.println(c.getMatch());
         }
     }
-
 
     int aiMatch(int depth1, int depth2) {
         Match match = new MatchBuilder().setPlayers(2).createMatch();

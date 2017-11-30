@@ -5,7 +5,7 @@ import marblegame.players.Player;
 import java.util.Arrays;
 
 public class MatchBuilder {
-    private State board;
+    private BoardState board;
     private int startAmount = 4;
     private int fieldsPerPlayer = 6;
     private int targetAmount = 3;
@@ -20,7 +20,7 @@ public class MatchBuilder {
         this.players = players;
     }
 
-    public MatchBuilder setBoard(State board) {
+    public MatchBuilder setBoard(BoardState board) {
         this.board = board;
         return this;
     }
@@ -40,7 +40,7 @@ public class MatchBuilder {
             throw new IllegalStateException("The players should be set");
         }
         if (board == null)
-            board = new State(
+            board = new BoardState(
                     fill(startAmount, fieldsPerPlayer * players.length),
                     fill(0),
                     0

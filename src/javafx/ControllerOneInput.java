@@ -22,7 +22,7 @@ public class ControllerOneInput extends ControllerTwoPlayers {
     protected Competition createNewPlayers(Match match) {
         left = new RecordedPlayer<>(new SimplePlayer("Human"));
         right = new RecordedPlayer<>(new AiPlayer("Computer", match));
-        right = new RecordedPlayer<>(new NaivePlayer("Naive"));
+        right = new RecordedPlayer<>(new NaivePlayer("Naive", match));
         return new Competition(match, left, right);
     }
 

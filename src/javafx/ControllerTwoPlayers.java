@@ -68,7 +68,7 @@ public abstract class ControllerTwoPlayers {
     }
 
     protected void setBoardText() {
-        int[] fields = competition.getMatch().getState().getFields();
+        int[] fields = competition.getMatch().getBoardState().getFields();
         int i = 0;
         for (Node child :
                 gridpane.getChildren()) {

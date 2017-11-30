@@ -8,22 +8,22 @@ import java.util.Arrays;
 /**
  * Created by dennis on 2-3-17.
  */
-public class State {
-    int[] fields;
-    int[] points;
+public class BoardState {
+    final int[] fields;
+    final int[] points;
     int turn;
 
-    State(int[] fields, int[] points) {
+    BoardState(int[] fields, int[] points) {
         this(fields, points, 0);
     }
 
-    public State(int[] fields, int[] points, int turn) {
+    public BoardState(int[] fields, int[] points, int turn) {
         this.fields = fields;
         this.points = points;
         this.turn = turn;
     }
 
-    public State(State boardState) {
+    public BoardState(BoardState boardState) {
         this(
                 Arrays.copyOf(boardState.fields, boardState.fields.length),
                 Arrays.copyOf(boardState.points, boardState.points.length),
@@ -91,6 +91,10 @@ public class State {
         return fields;
     }
 
+    public int[] getAllPoints() {
+        return points;
+    }
+
     public int getPoints() {
         return points[turn];
     }
@@ -99,17 +103,21 @@ public class State {
         return points[turn];
     }
 
+    public int getNFields() {
+        return fields.length;
+    }
+
     static class Serializer {
-        static JSONObject toJson(State state) {
+        static JSONObject toJson(BoardState boardState) {
             JSONObject r = new JSONObject();
-            r.put("fields", Util.toArray(state.fields));
-            r.put("points", Util.toArray(state.points));
-            r.put("turn", state.turn);
+            r.put("fields", Util.toArray(boardState.fields));
+            r.put("points", Util.toArray(boardState.points));
+            r.put("turn", boardState.turn);
             return r;
         }
 
-        static State fromJSONObject(JSONObject object) {
-            return new State(
+        static BoardState fromJSONObject(JSONObject object) {
+            return new BoardState(
                     Util.toArray((JSONArray) object.get("fields")),
                     Util.toArray((JSONArray) object.get("points")),
                     Math.toIntExact((Long) object.get("turn"))

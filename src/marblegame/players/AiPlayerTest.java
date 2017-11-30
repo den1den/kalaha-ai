@@ -1,9 +1,9 @@
 package marblegame.players;
 
+import marblegame.BoardState;
 import marblegame.Competition;
 import marblegame.Match;
 import marblegame.MatchBuilder;
-import marblegame.State;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -14,7 +14,7 @@ public class AiPlayerTest {
 
     private Match match;
     private Competition competition;
-    private State board = null;
+    private BoardState board = null;
     private AiPlayer aiPlayer = null;
     private Player player = new SimplePlayer("Opponent");
 
@@ -26,7 +26,7 @@ public class AiPlayerTest {
 
     @Test
     public void calcMove0() throws Exception {
-        board = new State(
+        board = new BoardState(
                 new int[]{0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0},
                 new int[]{0, 0},
                 0
@@ -37,7 +37,7 @@ public class AiPlayerTest {
 
     @Test
     public void calcMove1() throws Exception {
-        board = new State(
+        board = new BoardState(
                 new int[]{0, 0, 2, 0, 0, 2, 0, 2, 0, 0, 0, 0},
                 new int[]{0, 0},
                 0
@@ -48,7 +48,7 @@ public class AiPlayerTest {
 
     @Test
     public void calcMoveTerminates() throws Exception {
-        board = new State(
+        board = new BoardState(
                 new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 new int[]{0, 0},
                 0
@@ -59,7 +59,7 @@ public class AiPlayerTest {
 
     @Test
     public void calcMoveTerminates2() throws Exception {
-        board = new State(
+        board = new BoardState(
                 new int[]{0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0},
                 new int[]{0, 0},
                 0

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="850cd4a2-ec23-4aad-9a1c-70c8405a1cbd" name="raspi (local)" url="http://192.168.1.52">
+        <fileTransfer host="192.168.1.52" port="22" rootFolder="/home/pi/marble-game" accessType="SFTP" authAgent="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="9bf5538e-4218-4e44-88c7-d21a324995e3" name="raspi (remote)" url="http://18yo959058.51mypc.cn">
+        <fileTransfer host="18yo959058.51mypc.cn" port="22" rootFolder="/home/pi/marble-game" accessType="SFTP" authAgent="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

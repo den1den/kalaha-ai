@@ -18,7 +18,8 @@ public class MainWindow extends Application {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getResource("javafx/main.fxml"));
+        // Parent root = FXMLLoader.load(getClass().getResource("javafx/main.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("jfx2/main.fxml"));
         primaryStage.setTitle("Marble game");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
