@@ -12,8 +12,8 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
 import marblegame.Competition;
-import marblegame.Match;
-import marblegame.MatchBuilder;
+import marblegame.gamemechanics.Match;
+import marblegame.gamemechanics.MatchBuilder;
 
 /**
  * Created by dennis on 17-11-17.

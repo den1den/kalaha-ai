@@ -1,8 +1,8 @@
 package marblegame;
 
+import marblegame.gamemechanics.Match;
+import marblegame.gamemechanics.PossibleMoveIterator;
 import marblegame.players.Player;
-
-import java.util.Arrays;
 
 public class Competition {
     private Match match;
@@ -27,10 +27,6 @@ public class Competition {
         return moves;
     }
 
-    int isFinished() {
-        return match.isFinished();
-    }
-
     public int move() {
         int turn = getTurn();
         Player player = players[turn];
@@ -52,23 +48,19 @@ public class Competition {
         return match.getTurn();
     }
 
-    public boolean isInRange(int moveIndex) {
-        return match.isInRange(moveIndex);
+    public boolean canMove(int moveIndex) {
+        return match.canMove(moveIndex);
     }
 
     public int[] getFields() {
-        return Arrays.copyOf(match.getBoardState().fields, match.getBoardState().fields.length);
-    }
-
-    public int calcWinner() {
-        return match.calcWinner();
+        return match.getFieldsCopy();
     }
 
     public int[] getPoints() {
-        return match.boardState.points;
+        return match.getPoints();
     }
 
     public boolean canPlay() {
-        return Match.AvailableMoveIterator.from(match).hasNext();
+        return PossibleMoveIterator.from(match).hasNext();
     }
 }

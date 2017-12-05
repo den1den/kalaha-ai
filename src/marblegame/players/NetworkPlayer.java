@@ -1,6 +1,6 @@
 package marblegame.players;
 
-import marblegame.Match;
+import marblegame.gamemechanics.Match;
 import net.PlayClient;
 
 public class NetworkPlayer extends AutomaticPlayer {

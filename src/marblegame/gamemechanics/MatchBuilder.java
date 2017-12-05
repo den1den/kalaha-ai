@@ -1,4 +1,4 @@
-package marblegame;
+package marblegame.gamemechanics;
 
 import marblegame.players.Player;
 
@@ -97,8 +97,7 @@ public class MatchBuilder {
     }
 
     public Match createHumanWinMatch() {
-        Match m = createMatch();
-        m.boardState = new BoardState(
+        board = new BoardState(
                 new int[]{
                         4, 4, 4, 4, 4, 1,
                         2, 2, 2, 2, 2, 2
@@ -106,6 +105,6 @@ public class MatchBuilder {
                 fill(0),
                 0
         );
-        return m;
+        return createMatch();
     }
 }

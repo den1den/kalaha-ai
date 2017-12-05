@@ -1,6 +1,6 @@
 package marblegame.players;
 
-import marblegame.Match;
+import marblegame.gamemechanics.Match;
 
 public abstract class AutomaticPlayer extends NamedPlayer {
     protected final Match match;

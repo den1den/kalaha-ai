@@ -1,12 +1,14 @@
 package marblegame;
 
 
+import marblegame.gamemechanics.Match;
+import marblegame.gamemechanics.MatchBuilder;
+import marblegame.gamemechanics.PossibleMoveIterator;
 import marblegame.players.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Iterator;
 
 /**
  * Created by dennis on 2-3-17.
@@ -66,15 +68,14 @@ public class Main {
 
         int gain;
         System.out.println(match);
-        while (c.isFinished() == -1) {
+        do {
             gain = c.move();
             System.out.println("Player " + human + " does " + c.getLastMove() + " (gain " + gain + ")");
 
             gain = c.move();
             System.out.println("Player " + ai + " does " + c.getLastMove() + " (gain " + gain + ")");
             System.out.println(match.toString());
-        }
-
+        } while (true);
     }
 
     void manualInputMatch() {
@@ -87,7 +88,7 @@ public class Main {
         NetworkPlayer ai = new NetworkPlayer(host, match);
         c = new Competition(match, human, ai);
 
-        while (c.isFinished() == -1) {
+        do {
             System.out.println(c.getMatch());
             // Ask human move
             int gain = c.move();
@@ -95,7 +96,7 @@ public class Main {
 
             gain = c.move();
             System.out.println("gain = " + gain);
-        }
+        } while (true);
     }
 
     void detMatch() {
@@ -104,9 +105,8 @@ public class Main {
         RecordedPlayer<AiPlayer> ai = new RecordedPlayer<>(new AiPlayer("Computer", match));
         c = new Competition(match, naive, ai);
 
-        while (c.isFinished() == -1) {
-
-            Iterator<Integer> possibleMoves = c.getMatch().getPossibleMoves();
+        do {
+            PossibleMoveIterator possibleMoves = PossibleMoveIterator.from(match);
             if (!possibleMoves.hasNext()) {
                 System.err.println("Naive lost");
                 break;
@@ -120,7 +120,7 @@ public class Main {
             gain = c.move();
             System.out.println("Player " + ai + " does " + ai.getMove() + " (gain " + gain + ")");
             System.out.println(c.getMatch());
-        }
+        } while (true);
     }
 
     int aiMatch(int depth1, int depth2) {
@@ -131,21 +131,15 @@ public class Main {
 
         int gain, finished;
         System.out.println(c.getMatch());
-        while (true) {
-            if ((finished = c.isFinished()) != -1) {
-                break;
-            }
+        do {
             gain = c.move();
             System.out.println("Player " + ai1 + " does " + ai1.getLastMove() + " (gain " + gain + ")");
 
-            if ((finished = c.isFinished()) != -1) {
-                break;
-            }
             gain = c.move();
             System.out.println("Player " + ai2 + " does " + ai2.getLastMove() + " (gain " + gain + ")");
             System.out.println(c.getMatch());
-        }
-        System.out.println("Player " + c.getPlayers()[finished] + " wins");
-        return finished;
+        } while (true);
+        // System.out.println("Player " + c.getPlayers()[finished] + " wins");
+        // return finished;
     }
 }

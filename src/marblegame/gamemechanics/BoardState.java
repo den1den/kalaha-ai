@@ -1,5 +1,6 @@
-package marblegame;
+package marblegame.gamemechanics;
 
+import marblegame.Util;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -13,7 +14,7 @@ public class BoardState {
     final int[] points;
     int turn;
 
-    BoardState(int[] fields, int[] points) {
+    public BoardState(int[] fields, int[] points) {
         this(fields, points, 0);
     }
 
@@ -31,7 +32,7 @@ public class BoardState {
         );
     }
 
-    public int getMaxOtherPlayerPoints(int player) {
+    int getMaxOtherPlayerPoints(int player) {
         int max = -1;
         for (int i = 0; i < points.length; i++) {
             if (i != player) {
@@ -41,10 +42,6 @@ public class BoardState {
             }
         }
         return max;
-    }
-
-    int getMaxOtherPlayerPoints() {
-        return getMaxOtherPlayerPoints(turn);
     }
 
     int remainingPoints() {

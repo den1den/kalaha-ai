@@ -1,8 +1,8 @@
 package net;
 
-import marblegame.Match;
-import marblegame.MatchBuilder;
 import marblegame.Util;
+import marblegame.gamemechanics.Match;
+import marblegame.gamemechanics.MatchBuilder;
 import org.json.simple.JSONObject;
 
 import java.io.BufferedReader;
@@ -12,7 +12,7 @@ import java.io.PrintWriter;
 import java.net.*;
 
 public class PlayClient {
-    public static int timeout = 3000;
+    static int timeout = 3000;
 
     private final SocketAddress target;
     private Socket socket;
@@ -26,7 +26,6 @@ public class PlayClient {
     public PlayClient(String host, int port) {
         target = new InetSocketAddress(host, port);
         socket = new Socket();
-        connect();
     }
 
     public static void main(String[] args) throws IOException {
@@ -36,18 +35,31 @@ public class PlayClient {
         } else {
             host = Util.isLenovo() ? "vandenbrand.eu" : "localhost";
         }
-        new PlayClient(host).run();
+        PlayClient testClient = new PlayClient(host);
+
+        try {
+            int response;
+            int result;
+            Match m = new MatchBuilder(2).createMatch();
+            do {
+                response = testClient.getResponseImpl(m);
+                result = m.move(response);
+                if (result == Match.MOVE_RESULT_WIN) {
+                    System.out.println("winning move = " + response);
+                    break;
+                } else if (m.isPad()) {
+                    System.out.println("blocked opponent = " + response);
+                    break;
+                }
+            } while (true);
+        } finally {
+            testClient.socket.close();
+        }
     }
 
-    private void connect() {
-        long t0 = System.currentTimeMillis();
+    public void connect() {
         try {
-            System.out.println("Connecting to " + target);
-            socket.connect(target, timeout);
-            writer = new PrintWriter(socket.getOutputStream(), true);
-            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            long t1 = System.currentTimeMillis();
-            System.out.println("Connected to " + target + " (in " + (t1 - t0) + "ms)");
+            connectImpl();
         } catch (SocketTimeoutException e) {
             System.err.println("Could not connect to " + target + " (timeout after " + timeout + "ms)");
         } catch (UnknownHostException e) {
@@ -57,20 +69,14 @@ public class PlayClient {
         }
     }
 
-    private void run() throws IOException {
-        try {
-            Match m;
-            int response;
-            m = getMatch();
-            while (!m.isPlayerWinnerByPoints()) {
-                response = getResponseImpl(m);
-                m.move(response);
-                System.out.println("move = " + response);
-            }
-            writer.println(PlayServer.MSG_CLOSE);
-        } finally {
-            socket.close();
-        }
+    public void connectImpl() throws IOException {
+        long t0 = System.currentTimeMillis();
+        System.out.println("Connecting to " + target);
+        socket.connect(target, timeout);
+        writer = new PrintWriter(socket.getOutputStream(), true);
+        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        long t1 = System.currentTimeMillis();
+        System.out.println("Connected to " + target + " (in " + (t1 - t0) + "ms)");
     }
 
     public boolean isConnected() {
@@ -81,8 +87,8 @@ public class PlayClient {
         try {
             return getResponseImpl(m);
         } catch (IOException e) {
-            System.err.println("Client could not get response");
-            e.printStackTrace();
+            System.err.println("Client could not get response (" + e + "), closing socket");
+            //e.printStackTrace();
             if (!socket.isClosed()) {
                 try {
                     socket.close();
@@ -95,12 +101,16 @@ public class PlayClient {
         }
     }
 
-    private int getResponseImpl(Match m) throws IOException {
+    public int getResponseImpl(Match m) throws IOException {
         ensureOpenSocket();
         JSONObject jsonObject = Match.Serializer.toJson(m);
         String json = jsonObject.toJSONString();
         writer.println(json);
         String response = reader.readLine();
+        if (response == null) {
+            socket.close();
+            throw new IOException("reader stream was finished");
+        }
         try {
             int result = Integer.parseInt(response);
             return result;
@@ -112,13 +122,15 @@ public class PlayClient {
     private void ensureOpenSocket() throws IOException {
         if (socket.isClosed()) {
             socket = new Socket();
+            System.out.println("ensureOpenSocket: creating new socket");
         }
-        if (!socket.isConnected()) {
-            connect();
+        try {
+            if (!socket.isConnected()) {
+                connectImpl();
+            }
+        } catch (IOException e) {
+            socket.close();
+            throw e;
         }
-    }
-
-    private Match getMatch() {
-        return new MatchBuilder(2).createMatch();
     }
 }

@@ -1,7 +1,8 @@
 package marblegame.players;
 
-import marblegame.BoardState;
-import marblegame.Match;
+import marblegame.gamemechanics.BoardState;
+import marblegame.gamemechanics.Match;
+import marblegame.gamemechanics.PossibleMoveIterator;
 
 import java.util.Iterator;
 
@@ -32,7 +33,7 @@ public class AiPlayer extends AutomaticPlayer {
 
         while (running && depth <= maxDepth) {
             //System.out.println("indexing depth " + depth);
-            for (Iterator<Integer> it = Match.AvailableMoveIterator.from(match, match.getBoardState()); it.hasNext(); ) {// newBS correct?
+            for (Iterator<Integer> it = PossibleMoveIterator.from(match, match.getBoardState()); it.hasNext(); ) {// newBS correct?
                 BoardState newBs = match.getBoardState();
                 int move = it.next();
                 int win = match.move(move, newBs);
@@ -71,9 +72,9 @@ public class AiPlayer extends AutomaticPlayer {
             return rating(boardState);
         }
 
-        Match.AvailableMoveIterator availableMoveIterator = Match.AvailableMoveIterator.from(match, boardState);
-        while (availableMoveIterator.hasNext()) {
-            int next = availableMoveIterator.next();
+        PossibleMoveIterator possibleMoveIterator = PossibleMoveIterator.from(match, boardState);
+        while (possibleMoveIterator.hasNext()) {
+            int next = possibleMoveIterator.next();
 
             BoardState newBoardState = new BoardState(boardState);
             int move = match.move(next, newBoardState);
@@ -101,7 +102,7 @@ public class AiPlayer extends AutomaticPlayer {
             return Integer.MAX_VALUE;
         }
 
-        Match.AvailableMoveIterator moveIterator = Match.AvailableMoveIterator.from(match, boardState);
+        PossibleMoveIterator moveIterator = PossibleMoveIterator.from(match, boardState);
         while (moveIterator.hasNext()) {
             Integer next = moveIterator.next();
             BoardState newBoardState = new BoardState(boardState);

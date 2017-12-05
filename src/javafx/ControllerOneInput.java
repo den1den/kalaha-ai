@@ -4,7 +4,7 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Shape;
 import marblegame.Competition;
-import marblegame.Match;
+import marblegame.gamemechanics.Match;
 import marblegame.players.*;
 
 /**
@@ -45,7 +45,7 @@ public class ControllerOneInput extends ControllerTwoPlayers {
         Node source = (Node) event.getSource();
         if (this.gridpane.equals(source.getParent())) {
             int index = (int) source.getProperties().get("field leftIndex");
-            if (competition.isInRange(index)) { // competition.canSet
+            if (competition.canMove(index)) { // competition.canSet
                 clickMove(index);
             } else {
                 unclickMove();

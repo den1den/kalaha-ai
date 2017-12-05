@@ -1,9 +1,9 @@
 package marblegame.players;
 
-import marblegame.BoardState;
 import marblegame.Competition;
-import marblegame.Match;
-import marblegame.MatchBuilder;
+import marblegame.gamemechanics.BoardState;
+import marblegame.gamemechanics.Match;
+import marblegame.gamemechanics.MatchBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 
