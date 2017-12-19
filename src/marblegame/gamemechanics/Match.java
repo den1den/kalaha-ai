@@ -1,15 +1,12 @@
 package marblegame.gamemechanics;
 
 import marblegame.Util;
-import marblegame.players.Player;
-import marblegame.players.RecordedPlayer;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.util.Arrays;
-
 /**
- * Created by dennis on 2-3-17.
+ * A match which can be played between players.
+ * This class stores the rules that will be used.
  */
 public class Match {
     public static final int MOVE_RESULT_WIN = Integer.MAX_VALUE;
@@ -18,7 +15,7 @@ public class Match {
     final int[] endFields;
     private final int[] targetAmount;
     private final int[] target2Amount;
-    private boolean onlyWinOnOtherTeritory = true;
+    private boolean onlyWinOnOtherTerritory = true;
 
     public Match(BoardState boardState, int[] startFields, int[] endFields, int[] targetAmount, int[] target2Amount) {
         this.boardState = boardState;
@@ -28,23 +25,35 @@ public class Match {
         this.target2Amount = target2Amount;
     }
 
-    private static boolean isWinnerByPoints(int player, BoardState boardState) {
-        int points = boardState.points[player];
-        int otherPoints = boardState.getMaxOtherPlayerPoints(player);
-        int remaining = boardState.remainingPoints();
-        return points > otherPoints + remaining;
+    private boolean isWinnerByPoints(int player, BoardState boardState) {
+        return getPointsToWin(player, boardState) <= 0;
+    }
+
+    public int getPointsToWin(int player) {
+        return getPointsToWin(player, boardState);
+    }
+
+    public int getPointsToWin(int player, BoardState boardState) {
+        int score = boardState.points[player];
+        int oppScore = boardState.getMaxOtherPlayerPoints(player);
+        int possible = boardState.remainingPoints();
+
+        int maxScore = score + possible;
+        int maxOppScore = oppScore + possible;
+
+        if (maxOppScore < score) {
+            // Win
+            return 0;
+        }
+        if (maxScore <= oppScore) {
+            // Lose
+            return -1;
+        }
+        return (maxOppScore - score) / 2 + 1;
     }
 
     public BoardState getBoardState() {
         return new BoardState(boardState);
-    }
-
-    public int getTurn() {
-        return boardState.turn;
-    }
-
-    public int[] getPoints() {
-        return boardState.points;
     }
 
     public boolean canMove(int move) {
@@ -80,10 +89,6 @@ public class Match {
         return boardState.toString();
     }
 
-    public String toString(BoardState board, Player[] players) {
-        return toString(board, players, true, true);
-    }
-
     public String toString(BoardState board) {
         StringBuilder s = new StringBuilder();
         for (int i = 0; i < this.startFields.length; i++) {
@@ -92,34 +97,18 @@ public class Match {
         return s.toString();
     }
 
-    public String toString(BoardState board, Player[] players, boolean showTurn, boolean showIndices) {
-        int prevTurn = board.turn == 0 ? this.startFields.length - 1 : board.turn - 1;
-        String s = "";
-        for (int i = 0; i < this.startFields.length; i++) {
-            Player p = players[i];
 
-            if (showIndices && i == 0) {
-                s += String.format("                %s\n", board.toStringPlayerIndices(i));
-            }
-
-            String boardString;
-            if (showTurn && i == prevTurn && p != null && p instanceof RecordedPlayer) {
-                boardString = board.toStringPlayer(i, ((RecordedPlayer) p).getLastMove());
-            } else {
-                boardString = board.toStringPlayer(i);
-            }
-            s += String.format("%15s %s\n", p.getName(), boardString);
-        }
-        return s;
-    }
-
+    /**
+     * @param moveIndex the move
+     * @return the winning amount, or MOVE_RESULT_WIN when is was a winning move
+     */
     public int move(int moveIndex) {
         return move(moveIndex, boardState);
     }
 
     /**
-     * @param moveIndex
-     * @param board
+     * @param moveIndex the move
+     * @param board on the board
      * @return the winning amount, or MOVE_RESULT_WIN when is was a winning move
      */
     public int move(int moveIndex, BoardState board) {
@@ -139,7 +128,7 @@ public class Match {
         int last = (i == 0 ? board.fields.length - 1 : i - 1);
         int nextLast = (last == 0 ? board.fields.length - 1 : last - 1);
 
-        if (onlyWinOnOtherTeritory && canMove(last, board)) {
+        if (onlyWinOnOtherTerritory && canMove(last, board)) {
             // The final stones are not taken away
             // There is no win
             win = 0;
@@ -191,10 +180,9 @@ public class Match {
         return -1;
     }
 
-    public int[] getFieldsCopy() {
-        return Arrays.copyOf(boardState.fields, boardState.fields.length);
-    }
-
+    /**
+     * @return iff there cannot happen any move anymore
+     */
     public boolean isPad() {
         int min = startFields[boardState.turn];
         int max = endFields[boardState.turn];
@@ -206,12 +194,27 @@ public class Match {
         return true;
     }
 
+    /**
+     * @return a possible move with the lowest index
+     */
     public int nextPossibleMove() {
         PossibleMoveIterator possibleMoveIterator = PossibleMoveIterator.from(this);
         if (possibleMoveIterator.hasNext()) {
             return possibleMoveIterator.next();
         }
         return -1;
+    }
+
+    public int getPoints(int player) {
+        return boardState.points[player];
+    }
+
+    public int[] getFieldsCopy() {
+        return boardState.getFieldsCopy();
+    }
+
+    public boolean hasWon(int player) {
+        return getPointsToWin(player, boardState) == 0;
     }
 
     public static class Serializer {

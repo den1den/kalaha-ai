@@ -1,4 +1,4 @@
-package marblegame.players;
+package marblegame.solvers;
 
 import marblegame.gamemechanics.BoardState;
 import marblegame.gamemechanics.Match;
@@ -9,22 +9,33 @@ import java.util.Iterator;
 /**
  * Created by dennis on 2-3-17.
  */
-public class AiPlayer extends AutomaticPlayer {
+public class AiSolver implements Solver {
 
-    private static final int DEFAULT_SEARCH_DEPTH = 13;
+    public static final int DEFAULT_SEARCH_DEPTH = 13;
+    boolean running = false;
+    boolean avoidPad = true;
 
     private int maxDepth;
+    private Match match;
 
-    public AiPlayer(String name, Match match, int maxDepth) {
-        super(name, match);
+    public AiSolver() {
+        this(DEFAULT_SEARCH_DEPTH);
+    }
+
+    public AiSolver(int maxDepth) {
         this.maxDepth = maxDepth;
     }
 
-    public AiPlayer(String name, Match match) {
-        this(name, match, DEFAULT_SEARCH_DEPTH);
+    /**
+     * use a-b-pruning
+     */
+    @Override
+    public int solve(Match match) {
+        this.match = match;
+        return calcMove();
     }
 
-    public int calcMove(int maxDepth) {
+    public int calcMove() {
         int bestMove = -1;
         int bestRating = Integer.MIN_VALUE;
         int depthFound = -1;
@@ -33,10 +44,10 @@ public class AiPlayer extends AutomaticPlayer {
 
         while (running && depth <= maxDepth) {
             //System.out.println("indexing depth " + depth);
-            for (Iterator<Integer> it = PossibleMoveIterator.from(match, match.getBoardState()); it.hasNext(); ) {// newBS correct?
+            for (Iterator<Integer> it = PossibleMoveIterator.from(match, match.getBoardState()); it.hasNext(); ) { // newBS correct?
                 BoardState newBs = match.getBoardState();
                 int move = it.next();
-                int win = match.move(move, newBs);
+                int gain = match.move(move, newBs);
 
                 int r = AlphaBetaMin(newBs, depth, 0, Integer.MIN_VALUE, Integer.MAX_VALUE);
                 if (r > bestRating) {
@@ -55,14 +66,6 @@ public class AiPlayer extends AutomaticPlayer {
         return bestMove;
     }
 
-    /**
-     * use a-b-pruning
-     */
-    @Override
-    protected int calcMove() {
-        return calcMove(maxDepth);
-    }
-
     private Integer AlphaBetaMin(BoardState boardState, int depthLimit, int depth, int a, int b) {
         //System.out.println("AlphaBetaMin with Depth " + depth + ", and depth limit " + depthLimit);
         if (depth >= depthLimit) {
@@ -73,14 +76,17 @@ public class AiPlayer extends AutomaticPlayer {
         }
 
         PossibleMoveIterator possibleMoveIterator = PossibleMoveIterator.from(match, boardState);
+        if (avoidPad && !possibleMoveIterator.hasNext()) {
+            // pad -> no winner
+            return Integer.MIN_VALUE;
+        }
         while (possibleMoveIterator.hasNext()) {
             int next = possibleMoveIterator.next();
 
             BoardState newBoardState = new BoardState(boardState);
-            int move = match.move(next, newBoardState);
-            if (move != 0) {
-                // Someone won
-                // System.err.println("Someone won");
+            int gain = match.move(next, newBoardState);
+            if (gain != 0) {
+                // Points have been scored
             }
 
             b = Math.min(b, AlphaBetaMax(newBoardState, depthLimit, depth + 1, a, b));
@@ -99,6 +105,7 @@ public class AiPlayer extends AutomaticPlayer {
             return rating;
         }
         if (rating == Integer.MAX_VALUE) {
+            System.out.println("Sees a max");
             return Integer.MAX_VALUE;
         }
 
@@ -106,7 +113,7 @@ public class AiPlayer extends AutomaticPlayer {
         while (moveIterator.hasNext()) {
             Integer next = moveIterator.next();
             BoardState newBoardState = new BoardState(boardState);
-            int move = match.move(next, newBoardState);
+            int gain = match.move(next, newBoardState);
             a = Math.max(a, AlphaBetaMin(newBoardState, depthLimit, depth + 1, a, b));
             if (b <= a) {
                 return a;
@@ -116,7 +123,10 @@ public class AiPlayer extends AutomaticPlayer {
     }
 
     private int rating(BoardState boardState) {
-        return boardState.getPoints();
+        return boardState.getPointsOfPlayer();
     }
 
+    public void setMaxDepth(int depth) {
+        this.maxDepth = depth;
+    }
 }

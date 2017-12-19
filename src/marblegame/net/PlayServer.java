@@ -1,8 +1,9 @@
-package net;
+package marblegame.net;
 
 import marblegame.Util;
 import marblegame.gamemechanics.Match;
-import marblegame.players.AiPlayer;
+import marblegame.solvers.AiSolver;
+import marblegame.solvers.Solver;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -13,33 +14,39 @@ import java.net.Socket;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class PlayServer {
     private ServerSocket serverSocket;
-    private ThreadPoolExecutor executor;
-    private static PlayServer instance = null;
-    static private Cache cache;
-    private net.Solver solver;
+    private final ExecutorService handler;
 
-    private PlayServer() throws IOException {
-        serverSocket = new ServerSocket(6020);
-        int nThreads = Util.isLenovo() ? 2 : 8;
-        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
+    static private Cache cache;
+    private Solver solver;
+
+    private PlayServer(Solver solver, int port, ExecutorService handler) throws IOException {
+        this.solver = solver;
+        this.handler = handler;
+        serverSocket = new ServerSocket(port);
         System.out.println("Server listening on " + serverSocket.getInetAddress());
     }
 
-    public PlayServer(net.Solver solver) throws IOException {
-        this();
-        this.solver = solver;
+    public static PlayServer getSimplePlayServer(Solver solver) throws IOException {
+        int nThreads = Util.isLenovo() ? 2 : 8;
+        ExecutorService executor = Executors.newFixedThreadPool(nThreads);
+        return new PlayServer(solver, 6020, executor);
     }
 
-    public static PlayServer getPlayServer() throws IOException {
-        if (instance == null) {
-            instance = new PlayServer();
-        }
-        return instance;
+    /**
+     * Single threaded play server
+     *
+     * @param solver
+     * @return
+     * @throws IOException
+     */
+    public static PlayServer getBlockingPlayServer(Solver solver) throws IOException {
+        return new PlayServer(solver, 6020, null);
     }
 
     static Cache getCache() {
@@ -49,54 +56,75 @@ public class PlayServer {
                 try (ObjectInputStream fio = new ObjectInputStream(new FileInputStream(cacheFile))) {
                     cache = (Cache) fio.readObject();
                     cache.cacheFile = cacheFile;
+                    System.out.println("Cache file read in");
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                     cacheFile.delete();
-                    cache = new Cache(cacheFile);
+                    System.err.println("Cache file deleted: " + e);
                 } catch (ClassCastException e) {
                     cacheFile.delete();
-                    System.err.println("Renewing cache: " + e);
-                    cache = new Cache(cacheFile);
+                    System.err.println("Cache file deleted: " + e);
                 }
-            } else {
+            }
+            if (cache == null) {
                 cache = new Cache(cacheFile);
             }
         }
         return cache;
     }
 
-    public static Runnable runnable() {
-        return () -> {
-            try {
-                PlayServer playServer = PlayServer.getPlayServer();
-                playServer.run();
-            } catch (IOException e) {
-                throw new Error(e);
-            }
-        };
-    }
-
     public static void main(String[] args) throws Exception {
-        PlayServer server = PlayServer.getPlayServer();
+        PlayServer server = PlayServer.getSimplePlayServer(new AiSolver());
         server.run();
     }
 
     public void run() throws IOException {
         if (solver == null) {
-            solver = new Solver();
+            throw new IllegalStateException("Solver cannot be null");
         }
         while (true) {
             Socket socket = serverSocket.accept();
             Req req = new Req(socket);
-            executor.execute(req);
+            if (handler == null) {
+                req.run();
+            } else {
+                handler.execute(req);
+            }
         }
     }
 
-    public void setSolver(net.Solver solver) {
+    public void runOnOwnHandler() {
+        if (handler == null) {
+            throw new IllegalStateException("Server must have a handler to process its own queue");
+        }
+        if (handler instanceof ThreadPoolExecutor) {
+            if (((ThreadPoolExecutor) handler).getMaximumPoolSize() <= 1) {
+                throw new IllegalStateException("Server must have at least two threads to process its own queue");
+            }
+        }
+        handler.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    PlayServer.this.run();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
+
+    public void cancel() throws IOException {
+        serverSocket.close();
+        if (handler != null)
+            handler.shutdown();
+    }
+
+    public void setSolver(Solver solver) {
         this.solver = solver;
     }
 
-    private static class Cache {
+    private static class Cache implements Serializable {
         File cacheFile;
         private Date lastModified;
         private Map<String, Integer> cache = new ConcurrentHashMap<>();
@@ -119,23 +147,13 @@ public class PlayServer {
             try {
                 cacheFile.createNewFile();
                 try (
-                    ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream(cacheFile))) {
-                    writer.writeObject(cache);
+                        ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream(cacheFile))
+                ) {
+                    writer.writeObject(this);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    public static class Solver implements net.Solver {
-
-        @Override
-        public int solve(Match m) {
-            AiPlayer aiPlayer = new AiPlayer("", m);
-            int maxDepth;
-            maxDepth = Util.isLenovo() ? 10 : 15;
-            return aiPlayer.calcMove(maxDepth);
         }
     }
 
@@ -184,8 +202,13 @@ public class PlayServer {
             } finally {
                 try {
                     socket.close();
-                    System.out.println("Connection closed to " + this.socket.getInetAddress()
-                            + " (" + (executor.getQueue().size() + executor.getActiveCount() - 1) + " remaining)");
+                    if (handler instanceof ThreadPoolExecutor) {
+                        ThreadPoolExecutor handler = (ThreadPoolExecutor) PlayServer.this.handler;
+                        System.out.println("Connection closed to " + this.socket.getInetAddress()
+                                + " (" + (handler.getQueue().size() + handler.getActiveCount() - 1) + " remaining)");
+                    } else {
+                        System.out.println("Connection closed to " + this.socket.getInetAddress());
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -8,12 +8,12 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
-import marblegame.gamemechanics.BoardState;
 import marblegame.gamemechanics.Match;
-import marblegame.players.AiPlayer;
-import net.PlayServer;
-import net.Solver;
+import marblegame.net.PlayServer;
+import marblegame.solvers.AiSolver;
+import marblegame.solvers.Solver;
 
+import java.io.IOException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -22,6 +22,7 @@ public class ServerMatch extends AnimatedTwoPlayerVis implements Solver {
     final Server server = new Server();
     public CheckBox automaticCheckbox;
     public ChoiceBox<Integer> maxDepthChoiceBox;
+
     BooleanProperty commit = new SimpleBooleanProperty(false);
     private Match m = null;
 
@@ -45,6 +46,7 @@ public class ServerMatch extends AnimatedTwoPlayerVis implements Solver {
         maxDepthChoiceBox.getItems().addAll(
                 IntStream.range(1, 14).boxed().collect(Collectors.toList())
         );
+        maxDepthChoiceBox.getSelectionModel().select(1);
     }
 
     @Override
@@ -62,8 +64,7 @@ public class ServerMatch extends AnimatedTwoPlayerVis implements Solver {
     public int solve(Match m) {
         synchronized (server) {
             this.m = m;
-            BoardState bs = m.getBoardState();
-            setFields(bs.getFields(), bs.getAllPoints());
+            setFields(m);
 
             if (automaticCheckbox.isSelected()) {
                 // AI move
@@ -91,8 +92,8 @@ public class ServerMatch extends AnimatedTwoPlayerVis implements Solver {
     private int doAiMove(Match m) {
         maxDepthChoiceBox.setDisable(true);
         int maxDepth = maxDepthChoiceBox.getValue();
-        AiPlayer aip = new AiPlayer("", m);
-        int calcMove = aip.calcMove(maxDepth);
+        AiSolver aip = new AiSolver(maxDepth);
+        int calcMove = aip.solve(m);
         maxDepthChoiceBox.setDisable(false);
         return calcMove;
     }
@@ -103,22 +104,35 @@ public class ServerMatch extends AnimatedTwoPlayerVis implements Solver {
 
     @Override
     public void close() {
+        super.close();
         server.cancel();
     }
 
     private class Server extends Service<Void> {
+
+        PlayServer server;
 
         @Override
         protected Task<Void> createTask() {
             return new Task<Void>() {
                 @Override
                 protected Void call() throws Exception {
-                    PlayServer server = PlayServer.getPlayServer();
+                    server = PlayServer.getSimplePlayServer(new AiSolver());
                     server.setSolver(ServerMatch.this);
                     server.run(); // Never returns
                     return null;
                 }
             };
+        }
+
+        @Override
+        public boolean cancel() {
+            try {
+                server.cancel();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return super.cancel();
         }
     }
 }

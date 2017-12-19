@@ -1,20 +1,27 @@
 package marblegame.players;
 
 import marblegame.gamemechanics.Match;
+import marblegame.solvers.Solver;
 
-public abstract class AutomaticPlayer extends NamedPlayer {
-    protected final Match match;
-    protected boolean running = false;
+public class AutomaticPlayer implements Player {
+    final Solver solver;
+    Match match;
 
-    public AutomaticPlayer(String name, Match match) {
-        super(name);
+    public AutomaticPlayer(Solver solver) {
+        this(null, solver);
+    }
+
+    public AutomaticPlayer(Match match, Solver solver) {
+        this.match = match;
+        this.solver = solver;
+    }
+
+    public void setMatch(Match match) {
         this.match = match;
     }
 
-    protected abstract int calcMove();
-
     @Override
     public int getMove() {
-        return calcMove();
+        return solver.solve(match);
     }
 }

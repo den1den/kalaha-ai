@@ -5,6 +5,4 @@ package marblegame.players;
  */
 public interface Player {
     int getMove();
-
-    String getName();
 }

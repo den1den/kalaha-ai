@@ -7,7 +7,7 @@ import org.json.simple.JSONObject;
 import java.util.Arrays;
 
 /**
- * Created by dennis on 2-3-17.
+ * Defines a board
  */
 public class BoardState {
     final int[] fields;
@@ -24,6 +24,11 @@ public class BoardState {
         this.turn = turn;
     }
 
+    /**
+     * Copy constructor
+     *
+     * @param boardState original
+     */
     public BoardState(BoardState boardState) {
         this(
                 Arrays.copyOf(boardState.fields, boardState.fields.length),
@@ -44,6 +49,9 @@ public class BoardState {
         return max;
     }
 
+    /**
+     * @return the number of points that can still be scored
+     */
     int remainingPoints() {
         int sum = 0;
         for (int i = 0; i < fields.length; i++) {
@@ -88,23 +96,23 @@ public class BoardState {
         return r.toString();
     }
 
-    public int[] getFields() {
-        return fields;
+    public int[] getFieldsCopy() {
+        return Arrays.copyOf(fields, fields.length);
     }
 
-    public int[] getAllPoints() {
-        return points;
+    public int[] getPointsCopy() {
+        return Arrays.copyOf(points, points.length);
     }
 
-    public int getPoints() {
+    public int getPointsOfPlayer() {
         return points[turn];
     }
 
-    int getPlayerPoints(int player) {
+    public int getPlayerPoints(int player) {
         return points[player];
     }
 
-    int getPlayerPoints() {
+    public int getPlayerPoints() {
         return points[turn];
     }
 

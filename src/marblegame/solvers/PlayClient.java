@@ -1,4 +1,4 @@
-package net;
+package marblegame.solvers;
 
 import marblegame.Util;
 import marblegame.gamemechanics.Match;
@@ -9,23 +9,32 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.*;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 
-public class PlayClient {
+/**
+ * Connects to a PlayServer and retrieves moves
+ */
+public class PlayClient implements Solver {
     static int timeout = 3000;
 
-    private final SocketAddress target;
+    private final String host;
+    private final int port;
+
     private Socket socket;
+
     private PrintWriter writer;
     private BufferedReader reader;
+    private SocketAddress target;
 
     public PlayClient(String host) {
         this(host, 6020);
     }
 
     public PlayClient(String host, int port) {
-        target = new InetSocketAddress(host, port);
-        socket = new Socket();
+        this.host = host;
+        this.port = port;
     }
 
     public static void main(String[] args) throws IOException {
@@ -39,12 +48,12 @@ public class PlayClient {
 
         try {
             int response;
-            int result;
+            int gain;
             Match m = new MatchBuilder(2).createMatch();
             do {
                 response = testClient.getResponseImpl(m);
-                result = m.move(response);
-                if (result == Match.MOVE_RESULT_WIN) {
+                gain = m.move(response);
+                if (gain == Match.MOVE_RESULT_WIN) {
                     System.out.println("winning move = " + response);
                     break;
                 } else if (m.isPad()) {
@@ -57,20 +66,12 @@ public class PlayClient {
         }
     }
 
-    public void connect() {
-        try {
-            connectImpl();
-        } catch (SocketTimeoutException e) {
-            System.err.println("Could not connect to " + target + " (timeout after " + timeout + "ms)");
-        } catch (UnknownHostException e) {
-            System.err.println("Could not find host " + target);
-        } catch (Exception e) {
-            System.err.println("Could not connect to " + target + " " + e.getMessage());
-        }
-    }
-
     public void connectImpl() throws IOException {
         long t0 = System.currentTimeMillis();
+        target = new InetSocketAddress(host, port);
+        if (socket == null) {
+            socket = new Socket();
+        }
         System.out.println("Connecting to " + target);
         socket.connect(target, timeout);
         writer = new PrintWriter(socket.getOutputStream(), true);
@@ -80,7 +81,7 @@ public class PlayClient {
     }
 
     public boolean isConnected() {
-        return socket.isConnected() && !socket.isClosed();
+        return socket != null && socket.isConnected() && !socket.isClosed();
     }
 
     public int getResponse(Match m) {
@@ -97,8 +98,8 @@ public class PlayClient {
                     e1.printStackTrace();
                 }
             }
-            return -1;
         }
+        return -1;
     }
 
     public int getResponseImpl(Match m) throws IOException {
@@ -132,5 +133,10 @@ public class PlayClient {
             socket.close();
             throw e;
         }
+    }
+
+    @Override
+    public int solve(Match m) {
+        return getResponse(m);
     }
 }

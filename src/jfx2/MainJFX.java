@@ -32,8 +32,8 @@ public class MainJFX extends Application {
         primaryStage.show();
 
         primaryStage.setOnCloseRequest(e -> {
-            Platform.exit();
             controller.close();
+            Platform.exit();
         });
     }
 }

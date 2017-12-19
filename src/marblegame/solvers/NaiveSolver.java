@@ -1,4 +1,4 @@
-package marblegame.players;
+package marblegame.solvers;
 
 import marblegame.gamemechanics.Match;
 import marblegame.gamemechanics.PossibleMoveIterator;
@@ -6,13 +6,10 @@ import marblegame.gamemechanics.PossibleMoveIterator;
 /**
  * Created by dennis on 17-11-17.
  */
-public class NaivePlayer extends AutomaticPlayer {
-    public NaivePlayer(String name, Match match) {
-        super(name, match);
-    }
+public class NaiveSolver implements Solver {
 
     @Override
-    protected int calcMove() {
+    public int solve(Match match) {
         PossibleMoveIterator iterator = PossibleMoveIterator.from(match);
         if (iterator.hasNext()) {
             return iterator.next();

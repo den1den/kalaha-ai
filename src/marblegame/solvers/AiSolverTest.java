@@ -1,27 +1,31 @@
-package marblegame.players;
+package marblegame.solvers;
 
-import marblegame.Competition;
+import marblegame.PlayerCompetition;
 import marblegame.gamemechanics.BoardState;
+import marblegame.gamemechanics.Competition;
 import marblegame.gamemechanics.Match;
 import marblegame.gamemechanics.MatchBuilder;
+import marblegame.players.AutomaticPlayer;
+import marblegame.players.Player;
+import marblegame.players.SimplePlayer;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * Created by dennis on 10-11-17.
  */
-public class AiPlayerTest {
+public class AiSolverTest {
 
     private Match match;
     private Competition competition;
     private BoardState board = null;
-    private AiPlayer aiPlayer = null;
-    private Player player = new SimplePlayer("Opponent");
+    private AiSolver aiSolverPlayer = null;
+    private Player player = new SimplePlayer();
 
     private void setup() {
-        match = new MatchBuilder().setPlayers(null, player).setBoard(board).createMatch();
-        aiPlayer = new AiPlayer("Test Player", match);
-        competition = new Competition(match, aiPlayer);
+        aiSolverPlayer = new AiSolver();
+        match = new MatchBuilder().setPlayers(2).setBoard(board).createMatch();
+        competition = new PlayerCompetition(match, new AutomaticPlayer(aiSolverPlayer));
     }
 
     @Test
@@ -65,11 +69,13 @@ public class AiPlayerTest {
                 0
         );
         setup();
-        int move = aiPlayer.calcMove(1000);
+        aiSolverPlayer.setMaxDepth(1000);
+        int move = aiSolverPlayer.solve(match);
     }
 
     private void checkBestMove5() {
-        int move = aiPlayer.calcMove(2);
+        aiSolverPlayer.setMaxDepth(2);
+        int move = aiSolverPlayer.solve(match);
         Assert.assertEquals(5, move);
         match.move(move, board); //  needed?
     }

@@ -5,9 +5,11 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
+import javafx.scene.control.Alert;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import marblegame.Competition;
+import marblegame.gamemechanics.Competition;
+import marblegame.gamemechanics.Match;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -21,6 +23,8 @@ public abstract class AnimatedTwoPlayerVis extends TwoPlayerVis {
     SimpleIntegerProperty selectedMove = new SimpleIntegerProperty(-1);
     SimpleIntegerProperty opponentSelectedMove = new SimpleIntegerProperty(-1);
 
+    Alert alert = null;
+
     @Override
     void initialize() {
         super.initialize();
@@ -32,25 +36,23 @@ public abstract class AnimatedTwoPlayerVis extends TwoPlayerVis {
 
     public MoveAnimationTask create(IntegerProperty selectedMove, int humanMove, boolean b, int[] preHumanBoardState, Competition competition) {
         return new MoveAnimationTask(selectedMove, humanMove, false, preHumanBoardState,
-                competition.getFields(), competition.getPoints());
+                competition.getMatch());
     }
 
     class MoveAnimationTask extends Task {
         final boolean animateFirst;
         final int moveIndex;
         final int[] fields;
-        final int[] finalFields;
-        final int[] finalPoints;
         final IntegerProperty selectedMove;
+        final Match match;
 
         MoveAnimationTask(IntegerProperty selectedMove, int moveIndex, boolean animateFirst,
-                          int[] fields, int[] finalFields, int[] finalPoints) {
+                          int[] fields, Match match) {
             this.selectedMove = selectedMove;
             this.animateFirst = animateFirst;
             this.moveIndex = moveIndex;
             this.fields = fields;
-            this.finalFields = finalFields;
-            this.finalPoints = finalPoints;
+            this.match = match;
         }
 
         @Override
@@ -69,7 +71,7 @@ public abstract class AnimatedTwoPlayerVis extends TwoPlayerVis {
                         selectedMove.set(fieldIndex);
                         wait(ANIMATION_TIMEOUT);
                     }
-                    setFields(finalFields, finalPoints);
+                    setFields(match);
                     selectedMove.set(-1);
                 }
             } catch (Exception e) {
@@ -79,7 +81,6 @@ public abstract class AnimatedTwoPlayerVis extends TwoPlayerVis {
                 e.printStackTrace();
                 throw e;
             }
-            System.out.println("Animation task done");
             return null;
         }
     }
@@ -87,13 +88,23 @@ public abstract class AnimatedTwoPlayerVis extends TwoPlayerVis {
     class AnimatorService extends RerunnableService {
         private Task task;
 
-        void setTask(Task task) {
-            this.task = task;
+        void setTask(IntegerProperty selectedMove, int moveIndex, boolean animateFirst,
+                     int[] fields, Match finalMatch) {
+            this.task = new MoveAnimationTask(selectedMove, moveIndex, animateFirst,
+                    fields, finalMatch);
         }
 
         @Override
         protected Task createTask() {
             return task;
+        }
+
+        void resetTo(IntegerProperty selectedMove, int moveIndex, boolean animateFirst,
+                     int[] fields, Match finalMatch) {
+            cancel();
+            reset();
+            setTask(selectedMove, moveIndex, animateFirst,
+                    fields, finalMatch);
         }
     }
 

@@ -5,12 +5,11 @@ import java.util.NoSuchElementException;
 /**
  * Created by dennis on 19-9-17.
  */
-public class PredetPlayer extends NamedPlayer {
-    int currentMove = 0;
-    final int[] moves;
+public class DeterministicPlayer implements Player {
+    private final int[] moves;
+    private int currentMove = 0;
 
-    public PredetPlayer(String name, int[] moves) {
-        super(name);
+    public DeterministicPlayer(int[] moves) {
         this.moves = moves;
     }
 

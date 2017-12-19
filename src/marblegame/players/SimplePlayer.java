@@ -1,14 +1,7 @@
 package marblegame.players;
 
-/**
- * Created by dennis on 3-10-17.
- */
-public class SimplePlayer extends NamedPlayer {
+public class SimplePlayer implements Player {
     int move;
-
-    public SimplePlayer(String name) {
-        super(name);
-    }
 
     public void setMove(int move) {
         this.move = move;
