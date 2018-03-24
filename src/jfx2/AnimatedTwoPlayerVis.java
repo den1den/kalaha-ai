@@ -11,6 +11,7 @@ import javafx.scene.paint.Paint;
 import marblegame.gamemechanics.Competition;
 import marblegame.gamemechanics.Match;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AnimatedTwoPlayerVis extends TwoPlayerVis {
@@ -19,7 +20,7 @@ public abstract class AnimatedTwoPlayerVis extends TwoPlayerVis {
     private static Paint selectedColor = Color.BLUE;
     private static Paint selectedOpponentColor = Color.RED;
     final AtomicBoolean executing = new AtomicBoolean(false);
-    AnimatorService animatorService = new AnimatorService();
+    final AnimatorService animatorService = new AnimatorService();
     SimpleIntegerProperty selectedMove = new SimpleIntegerProperty(-1);
     SimpleIntegerProperty opponentSelectedMove = new SimpleIntegerProperty(-1);
 
@@ -39,12 +40,14 @@ public abstract class AnimatedTwoPlayerVis extends TwoPlayerVis {
                 competition.getMatch());
     }
 
-    class MoveAnimationTask extends Task {
+    class MoveAnimationTask extends Task<Integer> implements ChangeListener<Integer> {
         final boolean animateFirst;
         final int moveIndex;
         final int[] fields;
         final IntegerProperty selectedMove;
         final Match match;
+
+        final AtomicBoolean updated = new AtomicBoolean(true);
 
         MoveAnimationTask(IntegerProperty selectedMove, int moveIndex, boolean animateFirst,
                           int[] fields, Match match) {
@@ -53,26 +56,55 @@ public abstract class AnimatedTwoPlayerVis extends TwoPlayerVis {
             this.moveIndex = moveIndex;
             this.fields = fields;
             this.match = match;
+            System.out.println("Starting a moveNow animation, with end result points: " + Arrays.toString(match.getBoardState().getPointsCopy()) + "\n" + Arrays.toString(match.getBoardState().getFieldsCopy()));
+            valueProperty().addListener(this);
         }
 
         @Override
-        protected Object call() throws Exception {
+        public void changed(ObservableValue<? extends Integer> observable, Integer oldValue, Integer newValue) {
+            System.out.println("MoveAnimationTask.changed: oldValue = [" + oldValue + "], newValue = [" + newValue + "], updated = [" + updated.get() + "]");
+            if (newValue == 0) {
+                setField(moveIndex, 0);
+                if (animateFirst) {
+                    selectedMove.set(moveIndex);
+                }
+            } else if (newValue == -1) {
+                setFields(match);
+                selectedMove.set(-1);
+            } else {
+                int fieldIndex = (moveIndex + newValue) % fields.length;
+                setField(fieldIndex, fields[fieldIndex] + 1);
+                selectedMove.set(fieldIndex);
+            }
+            updated.set(true);
+        }
+
+        @Override
+        protected Integer call() throws Exception {
             try {
                 int stones = fields[moveIndex];
-                synchronized (this) {
-                    setField(moveIndex, 0);
+                synchronized (animatorService) {
+                    updated.set(false);
+                    updateValue(0);
                     if (animateFirst) {
-                        selectedMove.set(moveIndex);
-                        wait(ANIMATION_TIMEOUT);
+                        animatorService.wait(ANIMATION_TIMEOUT);
                     }
+                    while (!updated.get()) {
+                        System.out.println("MoveAnimationTask.waiting for update");
+                        animatorService.wait(100);
+                    }
+                    for (int i = 1; i <= stones; i++) {
+                        updated.set(false);
+                        updateValue(i);
+                        animatorService.wait(ANIMATION_TIMEOUT);
+                        while (!updated.get()) {
+                            System.out.println("MoveAnimationTask.waiting for update 2");
+                            animatorService.wait(100);
+                        }
+                    }
+
                     for (int i = moveIndex + 1; i <= moveIndex + stones; i++) {
-                        int fieldIndex = i % fields.length;
-                        setField(fieldIndex, fields[fieldIndex] + 1);
-                        selectedMove.set(fieldIndex);
-                        wait(ANIMATION_TIMEOUT);
                     }
-                    setFields(match);
-                    selectedMove.set(-1);
                 }
             } catch (Exception e) {
                 System.err.println("Could not animate" + " isCancelled() = " + isCancelled()
@@ -81,7 +113,7 @@ public abstract class AnimatedTwoPlayerVis extends TwoPlayerVis {
                 e.printStackTrace();
                 throw e;
             }
-            return null;
+            return -1;
         }
     }
 

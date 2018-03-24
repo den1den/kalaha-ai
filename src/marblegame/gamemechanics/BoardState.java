@@ -89,9 +89,33 @@ public class BoardState {
 
     @Override
     public String toString() {
-        StringBuilder r = new StringBuilder("Board: ").append(toStringPlayer(0));
+        StringBuilder r = new StringBuilder("BoardPane ")
+            .append(super.toString())
+            .append(System.lineSeparator())
+            .append("       ")
+            .append(toStringPlayer(0));
         for (int i = 1; i < this.points.length; i++) {
             r.append(System.lineSeparator()).append("       ").append(toStringPlayer(i));
+        }
+        return r.toString();
+    }
+
+    public String toStringWithTurn() {
+        StringBuilder r = new StringBuilder("BoardPane: ");
+        if (turn == 0) {
+            r.append("-> ");
+        } else {
+            r.append("   ");
+        }
+        r.append(toStringPlayer(0));
+        for (int i = 1; i < this.points.length; i++) {
+            r.append(System.lineSeparator());
+            if (turn == i) {
+                r.append("-> ");
+            } else {
+                r.append("   ");
+            }
+            r.append("       ").append(toStringPlayer(i));
         }
         return r.toString();
     }
@@ -118,6 +142,33 @@ public class BoardState {
 
     public int getNFields() {
         return fields.length;
+    }
+
+    public int getTurn() {
+        return turn;
+    }
+
+    public int getPrevTurn() {
+        if (turn == 0) {
+            return this.points.length - 1;
+        } else {
+            return turn - 1;
+        }
+    }
+
+    public int getOverallMaximalPoints() {
+        int MAX = 0;
+        for (int i = 0; i < points.length; i++) {
+            MAX += points[i];
+        }
+        for (int i = 0; i < fields.length; i++) {
+            MAX += fields[i];
+        }
+        return MAX;
+    }
+
+    public int getFields(int index) {
+        return this.fields[index];
     }
 
     static class Serializer {

@@ -59,7 +59,16 @@ public abstract class TwoPlayerVis implements Controller {
         int[] fields = m.getFieldsCopy();
         setFields(fields);
         leftScoreText.setText(getPointsDisplay("Computer", 1, m));
-        leftScoreText.setText(getPointsDisplay("Human", 0, m));
+        rightScoreText.setText(getPointsDisplay("Human", 0, m));
+    }
+
+    void resetField() {
+        leftScoreText.setText("");
+        rightScoreText.setText("");
+        for (Node n : this.gridpane.getChildren()) {
+            Text txt = (Text) ((Pane) n).getChildren().get(1);
+            txt.setText("");
+        }
     }
 
     void setField(int index, int number) {

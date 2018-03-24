@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="294.0" prefWidth="400.0"
+            xmlns="http://javafx.com/javafx/8.0.121" fx:controller="talf.jfx.BoardPane">
+    <center>
+        <GridPane gridLinesVisible="true">
+            <children>
+                <BorderPane style="-fx-center-style: solid;" GridPane.columnIndex="1"
+                            GridPane.rowIndex="1">
+                    <center>
+                        <Circle radius="20.0" BorderPane.alignment="CENTER"/>
+                    </center>
+                </BorderPane>
+            </children>
+            <columnConstraints>
+                <ColumnConstraints prefWidth="100"/>
+                <ColumnConstraints prefWidth="100"/>
+                <ColumnConstraints minWidth="100.0"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints prefHeight="100"/>
+                <RowConstraints prefHeight="100"/>
+                <RowConstraints prefHeight="100"/>
+            </rowConstraints>
+        </GridPane>
+    </center>
+</BorderPane>

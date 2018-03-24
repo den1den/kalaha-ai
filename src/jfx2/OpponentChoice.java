@@ -2,9 +2,7 @@ package jfx2;
 
 class OpponentChoice {
     static final int CLIENT = 0;
-    static final int DIRECT = 1;
-    static final int HOST = 2;
-    static final int LOCAL = 3;
+    static final int HOST = 1;
     final String host;
     final String display;
     final int type;

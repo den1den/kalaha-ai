@@ -7,18 +7,19 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
-            minWidth="-Infinity" prefHeight="300.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121"
-            fx:controller="jfx2.ServerMatch">
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity"
+            minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="800.0"
+            xmlns="http://javafx.com/javafx/8.0.121" fx:controller="jfx2.ServerMatch">
     <left>
         <StackPane BorderPane.alignment="CENTER">
             <BorderPane.margin>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
             </BorderPane.margin>
             <children>
-                <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="200.0" stroke="BLACK"
-                           strokeType="INSIDE" width="120.0"/>
-                <Text fx:id="leftScoreText" strokeType="OUTSIDE" strokeWidth="0.0" text="Score: 0"/>
+                <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="200.0"
+                           stroke="BLACK" strokeType="INSIDE" width="120.0"/>
+                <Text fx:id="leftScoreText" strokeType="OUTSIDE" strokeWidth="0.0"
+                      text="Score: 0"/>
             </children>
         </StackPane>
     </left>
@@ -28,9 +29,10 @@
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
             </BorderPane.margin>
             <children>
-                <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="200.0" stroke="BLACK"
-                           strokeType="INSIDE" width="120.0"/>
-                <Text fx:id="rightScoreText" strokeType="OUTSIDE" strokeWidth="0.0" text="Score: 0"/>
+                <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="200.0"
+                           stroke="BLACK" strokeType="INSIDE" width="120.0"/>
+                <Text fx:id="rightScoreText" strokeType="OUTSIDE" strokeWidth="0.0"
+                      text="Score: 0"/>
             </children>
         </StackPane>
     </right>
@@ -50,86 +52,103 @@
                 <RowConstraints/>
             </rowConstraints>
             <children>
-                <StackPane onMouseClicked="#clickedField" GridPane.halignment="CENTER" GridPane.rowIndex="1"
-                           GridPane.valignment="CENTER">
-                    <children>
-                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
-                        <Text/>
-                    </children>
-                </StackPane>
-                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="1" GridPane.halignment="CENTER"
+                <StackPane onMouseClicked="#clickedField" GridPane.halignment="CENTER"
                            GridPane.rowIndex="1" GridPane.valignment="CENTER">
                     <children>
-                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
                         <Text/>
                     </children>
                 </StackPane>
-                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="2" GridPane.halignment="CENTER"
-                           GridPane.rowIndex="1" GridPane.valignment="CENTER">
-                    <children>
-                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
-                        <Text/>
-                    </children>
-                </StackPane>
-                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="3" GridPane.halignment="CENTER"
-                           GridPane.rowIndex="1" GridPane.valignment="CENTER">
-                    <children>
-                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
-                        <Text/>
-                    </children>
-                </StackPane>
-                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="4" GridPane.halignment="CENTER"
-                           GridPane.rowIndex="1" GridPane.valignment="CENTER">
-                    <children>
-                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
-                        <Text/>
-                    </children>
-                </StackPane>
-                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="5" GridPane.halignment="CENTER"
-                           GridPane.rowIndex="1" GridPane.valignment="CENTER">
-                    <children>
-                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
-                        <Text/>
-                    </children>
-                </StackPane>
-                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="5" GridPane.halignment="CENTER"
+                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="1"
+                           GridPane.halignment="CENTER" GridPane.rowIndex="1"
                            GridPane.valignment="CENTER">
                     <children>
-                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
                         <Text/>
                     </children>
                 </StackPane>
-                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="4" GridPane.halignment="CENTER"
+                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="2"
+                           GridPane.halignment="CENTER" GridPane.rowIndex="1"
                            GridPane.valignment="CENTER">
                     <children>
-                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
                         <Text/>
                     </children>
                 </StackPane>
-                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="3" GridPane.halignment="CENTER"
+                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="3"
+                           GridPane.halignment="CENTER" GridPane.rowIndex="1"
                            GridPane.valignment="CENTER">
                     <children>
-                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
                         <Text/>
                     </children>
                 </StackPane>
-                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="2" GridPane.halignment="CENTER"
+                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="4"
+                           GridPane.halignment="CENTER" GridPane.rowIndex="1"
                            GridPane.valignment="CENTER">
                     <children>
-                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
                         <Text/>
                     </children>
                 </StackPane>
-                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="1" GridPane.halignment="CENTER"
+                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="5"
+                           GridPane.halignment="CENTER" GridPane.rowIndex="1"
                            GridPane.valignment="CENTER">
                     <children>
-                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Text/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="5"
+                           GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                    <children>
+                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Text/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="4"
+                           GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                    <children>
+                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Text/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="3"
+                           GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                    <children>
+                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Text/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="2"
+                           GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                    <children>
+                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
+                        <Text/>
+                    </children>
+                </StackPane>
+                <StackPane onMouseClicked="#clickedField" GridPane.columnIndex="1"
+                           GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                    <children>
+                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
                         <Text/>
                     </children>
                 </StackPane>
                 <StackPane onMouseClicked="#clickedField" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                     <children>
-                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                        <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK"
+                                strokeType="INSIDE"/>
                         <Text/>
                     </children>
                 </StackPane>
@@ -138,10 +157,10 @@
     </center>
     <bottom>
         <StackPane>
-            <Button mnemonicParsing="false" onAction="#commitMove" text="Do move"/>
             <BorderPane>
                 <left>
-                    <Text fx:id="statusText" strokeType="OUTSIDE" strokeWidth="0.0" BorderPane.alignment="CENTER"/>
+                    <Text fx:id="statusText" strokeType="OUTSIDE" strokeWidth="0.0"
+                          BorderPane.alignment="CENTER"/>
                 </left>
                 <right>
                     <HBox alignment="CENTER">
@@ -156,6 +175,7 @@
                     </HBox>
                 </right>
             </BorderPane>
+            <Button mnemonicParsing="false" onAction="#commitMove" text="Do move"/>
             <BorderPane.margin>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
             </BorderPane.margin>
@@ -164,7 +184,8 @@
     <top>
         <HBox BorderPane.alignment="CENTER">
             <children>
-                <Text fx:id="connectionStatusText" strokeType="OUTSIDE" strokeWidth="0.0" text="Not connected"/>
+                <Text fx:id="connectionStatusText" strokeType="OUTSIDE" strokeWidth="0.0"
+                      text="Not connected"/>
             </children>
             <BorderPane.margin>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>

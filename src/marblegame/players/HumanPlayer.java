@@ -19,7 +19,7 @@ public class HumanPlayer implements Player {
 
     @Override
     public int getMove() {
-        System.out.print("Enter a move\n");
+        System.out.print("Enter a moveNow\n");
         return scanner.nextInt();
     }
 }

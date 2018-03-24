@@ -22,6 +22,9 @@ public class MatchBuilder {
 
     public MatchBuilder setBoard(BoardState board) {
         this.board = board;
+        if (board.points.length != players.length) {
+            throw new Error();
+        }
         return this;
     }
 
@@ -36,22 +39,37 @@ public class MatchBuilder {
     }
 
     public Match createMatch() {
+        int[] startFields = new int[players.length];
+        int[] endFields = new int[players.length];
         if (players == null) {
             throw new IllegalStateException("The players should be set");
         }
-        if (board == null)
+        if (board == null) {
+            if (startAmount == -1 || fieldsPerPlayer == -1) {
+                throw new Error("Not enough info to make MatchController");
+            }
             board = new BoardState(
                     fill(startAmount, fieldsPerPlayer * players.length),
                     fill(0),
                     0
             );
-        int[] startFields = new int[players.length];
-        for (int i = 0; i < players.length; i++) {
-            startFields[i] = i * fieldsPerPlayer;
-        }
-        int[] endFields = new int[players.length];
-        for (int i = 0; i < players.length; i++) {
-            endFields[i] = (i + 1) * fieldsPerPlayer - 1;
+            for (int i = 0; i < players.length; i++) {
+                startFields[i] = i * fieldsPerPlayer;
+            }
+            for (int i = 0; i < players.length; i++) {
+                endFields[i] = (i + 1) * fieldsPerPlayer - 1;
+            }
+        } else {
+            if (board.fields.length % players.length != 0) {
+                throw new Error("Cannot deduce start fields of board with " + players.length + " players and " + board.fields.length + " fields");
+            }
+            int fieldsPerPlayer = board.fields.length / players.length;
+            for (int i = 0; i < players.length; i++) {
+                startFields[i] = i * fieldsPerPlayer;
+            }
+            for (int i = 0; i < players.length; i++) {
+                endFields[i] = (i + 1) * fieldsPerPlayer - 1;
+            }
         }
         return new Match(board, startFields, endFields, fill(targetAmount), fill(target2Amount));
     }

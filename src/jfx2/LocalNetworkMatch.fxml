@@ -5,18 +5,22 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
-            minWidth="-Infinity" prefHeight="300.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121"
-            fx:controller="jfx2.LocalNetworkMatch">
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity"
+            minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="800.0"
+            xmlns="http://javafx.com/javafx/8.0.121" fx:controller="jfx2.LocalNetworkMatch">
     <top>
         <ToolBar prefHeight="10" prefWidth="10" BorderPane.alignment="CENTER">
-            <Text fx:id="opponentText" text="Connected to:" textAlignment="RIGHT" wrappingWidth="160.0"/>
+            <Text fx:id="opponentText" text="Connected to:" textAlignment="RIGHT"
+                  wrappingWidth="160.0"/>
+            <ProgressIndicator fx:id="connectingProgressIndicator" maxHeight="-Infinity"
+                               maxWidth="-Infinity" prefHeight="20.0" prefWidth="20.0"
+                               visible="false"/>
             <ChoiceBox fx:id="opponentSelector" prefWidth="150.0"/>
-            <ProgressIndicator fx:id="connectingProgressIndicator" maxHeight="-Infinity" maxWidth="-Infinity"
-                               prefHeight="20.0" prefWidth="20.0" visible="false"/>
-            <Button fx:id="retryButton" mnemonicParsing="false" onAction="#clickedRetry" text="Retry" visible="false"/>
+            <Button fx:id="retryButton" mnemonicParsing="false" onAction="#clickedRetry"
+                    text="Retry"/>
             <Separator halignment="RIGHT" prefWidth="30.0"/>
-            <Button layoutX="300.0" mnemonicParsing="false" onAction="#restartClicked" text="Reset game"/>
+            <Button layoutX="300.0" mnemonicParsing="false" onAction="#restartClicked"
+                    text="Reset game"/>
         </ToolBar>
     </top>
     <left>
@@ -25,9 +29,10 @@
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
             </BorderPane.margin>
 
-            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="200.0" stroke="BLACK"
-                       strokeType="INSIDE" width="120.0"/>
-            <Text fx:id="leftScoreText" strokeType="OUTSIDE" strokeWidth="0.0" text="Score: 0"/>
+            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="200.0"
+                       stroke="BLACK" strokeType="INSIDE" width="120.0"/>
+            <Text fx:id="leftScoreText" strokeType="OUTSIDE" strokeWidth="0.0"
+                  text="Score: 0"/>
 
         </StackPane>
     </left>
@@ -47,85 +52,96 @@
                 <RowConstraints/>
             </rowConstraints>
 
-            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField" GridPane.halignment="CENTER"
+            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField"
+                       GridPane.halignment="CENTER" GridPane.rowIndex="1"
+                       GridPane.valignment="CENTER">
+
+                <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                <Text/>
+
+            </StackPane>
+            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField"
+                       GridPane.columnIndex="1" GridPane.halignment="CENTER"
                        GridPane.rowIndex="1" GridPane.valignment="CENTER">
 
                 <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
                 <Text/>
 
             </StackPane>
-            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField" GridPane.columnIndex="1"
-                       GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField"
+                       GridPane.columnIndex="2" GridPane.halignment="CENTER"
+                       GridPane.rowIndex="1" GridPane.valignment="CENTER">
 
                 <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
                 <Text/>
 
             </StackPane>
-            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField" GridPane.columnIndex="2"
-                       GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField"
+                       GridPane.columnIndex="3" GridPane.halignment="CENTER"
+                       GridPane.rowIndex="1" GridPane.valignment="CENTER">
 
                 <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
                 <Text/>
 
             </StackPane>
-            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField" GridPane.columnIndex="3"
-                       GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField"
+                       GridPane.columnIndex="4" GridPane.halignment="CENTER"
+                       GridPane.rowIndex="1" GridPane.valignment="CENTER">
 
                 <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
                 <Text/>
 
             </StackPane>
-            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField" GridPane.columnIndex="4"
-                       GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField"
+                       GridPane.columnIndex="5" GridPane.halignment="CENTER"
+                       GridPane.rowIndex="1" GridPane.valignment="CENTER">
 
                 <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
                 <Text/>
 
             </StackPane>
-            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField" GridPane.columnIndex="5"
-                       GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-
-                <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
-                <Text/>
-
-            </StackPane>
-            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField" GridPane.columnIndex="5"
-                       GridPane.halignment="CENTER" GridPane.valignment="CENTER">
-
-                <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
-                <Text/>
-
-            </StackPane>
-            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField" GridPane.columnIndex="4"
-                       GridPane.halignment="CENTER" GridPane.valignment="CENTER">
-
-                <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
-                <Text/>
-
-            </StackPane>
-            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField" GridPane.columnIndex="3"
-                       GridPane.halignment="CENTER" GridPane.valignment="CENTER">
-
-                <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
-                <Text/>
-
-            </StackPane>
-            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField" GridPane.columnIndex="2"
-                       GridPane.halignment="CENTER" GridPane.valignment="CENTER">
-
-                <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
-                <Text/>
-
-            </StackPane>
-            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField" GridPane.columnIndex="1"
-                       GridPane.halignment="CENTER" GridPane.valignment="CENTER">
-
-                <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
-                <Text/>
-
-            </StackPane>
-            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField" GridPane.halignment="CENTER"
+            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField"
+                       GridPane.columnIndex="5" GridPane.halignment="CENTER"
                        GridPane.valignment="CENTER">
+
+                <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                <Text/>
+
+            </StackPane>
+            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField"
+                       GridPane.columnIndex="4" GridPane.halignment="CENTER"
+                       GridPane.valignment="CENTER">
+
+                <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                <Text/>
+
+            </StackPane>
+            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField"
+                       GridPane.columnIndex="3" GridPane.halignment="CENTER"
+                       GridPane.valignment="CENTER">
+
+                <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                <Text/>
+
+            </StackPane>
+            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField"
+                       GridPane.columnIndex="2" GridPane.halignment="CENTER"
+                       GridPane.valignment="CENTER">
+
+                <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                <Text/>
+
+            </StackPane>
+            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField"
+                       GridPane.columnIndex="1" GridPane.halignment="CENTER"
+                       GridPane.valignment="CENTER">
+
+                <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
+                <Text/>
+
+            </StackPane>
+            <StackPane onMouseClicked="#clickedField" onMouseEntered="#enterField"
+                       GridPane.halignment="CENTER" GridPane.valignment="CENTER">
 
                 <Circle fill="DODGERBLUE" radius="40.0" stroke="BLACK" strokeType="INSIDE"/>
                 <Text/>
@@ -140,9 +156,10 @@
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
             </BorderPane.margin>
 
-            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="200.0" stroke="BLACK"
-                       strokeType="INSIDE" width="120.0"/>
-            <Text fx:id="rightScoreText" strokeType="OUTSIDE" strokeWidth="0.0" text="Score: 0"/>
+            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="DODGERBLUE" height="200.0"
+                       stroke="BLACK" strokeType="INSIDE" width="120.0"/>
+            <Text fx:id="rightScoreText" strokeType="OUTSIDE" strokeWidth="0.0"
+                  text="Score: 0"/>
 
         </StackPane>
     </right>
@@ -172,7 +189,8 @@
                                 <Insets right="10.0"/>
                             </HBox.margin>
                         </Label>
-                        <TextField fx:id="playerNameTextField" prefWidth="120.0" text="Pietje"/>
+                        <TextField fx:id="playerNameTextField" prefWidth="120.0"
+                                   text="Pietje"/>
 
                     </HBox>
                 </right>

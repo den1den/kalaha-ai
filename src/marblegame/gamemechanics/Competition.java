@@ -28,10 +28,10 @@ public class Competition {
     }
 
     /**
-     * Do an move on this match
+     * Do an moveNow on this match
      *
-     * @param move the index of the move to do
-     * @return the gain of the move
+     * @param move the index of the moveNow to do
+     * @return the gain of the moveNow
      */
     public int move(int move) {
         int gain = match.move(move);

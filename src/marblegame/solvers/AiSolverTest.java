@@ -23,13 +23,13 @@ public class AiSolverTest {
     private Player player = new SimplePlayer();
 
     private void setup() {
-        aiSolverPlayer = new AiSolver();
+        aiSolverPlayer = new AiSolver2();
         match = new MatchBuilder().setPlayers(2).setBoard(board).createMatch();
         competition = new PlayerCompetition(match, new AutomaticPlayer(aiSolverPlayer));
     }
 
     @Test
-    public void calcMove0() throws Exception {
+    public void calcMove0() {
         board = new BoardState(
                 new int[]{0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0},
                 new int[]{0, 0},
@@ -40,7 +40,7 @@ public class AiSolverTest {
     }
 
     @Test
-    public void calcMove1() throws Exception {
+    public void calcMove1() {
         board = new BoardState(
                 new int[]{0, 0, 2, 0, 0, 2, 0, 2, 0, 0, 0, 0},
                 new int[]{0, 0},
@@ -51,9 +51,9 @@ public class AiSolverTest {
     }
 
     @Test
-    public void calcMoveTerminates() throws Exception {
+    public void calcMoveTerminates() {
         board = new BoardState(
-                new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            new int[]{0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},
                 new int[]{0, 0},
                 0
         );
@@ -62,19 +62,19 @@ public class AiSolverTest {
     }
 
     @Test
-    public void calcMoveTerminates2() throws Exception {
+    public void calcMoveTerminates2() {
         board = new BoardState(
                 new int[]{0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0},
                 new int[]{0, 0},
                 0
         );
         setup();
-        aiSolverPlayer.setMaxDepth(1000);
+        aiSolverPlayer.setDepth(1000);
         int move = aiSolverPlayer.solve(match);
     }
 
     private void checkBestMove5() {
-        aiSolverPlayer.setMaxDepth(2);
+        aiSolverPlayer.setDepth(2);
         int move = aiSolverPlayer.solve(match);
         Assert.assertEquals(5, move);
         match.move(move, board); //  needed?

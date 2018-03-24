@@ -17,7 +17,7 @@ public class PlayerCompetition extends Competition {
     }
 
     /**
-     * Let the next player do the next move
+     * Let the next player do the next moveNow
      *
      * @return
      */

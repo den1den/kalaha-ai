@@ -1,6 +1,10 @@
 package jfx2;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -9,10 +13,8 @@ import javafx.scene.text.Text;
 import marblegame.gamemechanics.Competition;
 import marblegame.gamemechanics.Match;
 import marblegame.gamemechanics.MatchBuilder;
-import marblegame.net.PlayServer;
-import marblegame.solvers.AiSolver;
 
-import java.io.IOException;
+import java.util.LinkedList;
 
 public class LocalNetworkMatch extends AnimatedTwoPlayerVis implements NetworkMatch {
 
@@ -22,6 +24,18 @@ public class LocalNetworkMatch extends AnimatedTwoPlayerVis implements NetworkMa
     private static final String PLAYER_TURN_MSG = "Your turn";
     private static final String EXECUTING_OPPONENT_TURN_MSG = "Executing opponent turn";
     private static final String WAITING_FOR_OPPONENT_TURN_MSG = "Waiting for opponent turn";
+    private final ObservableList<String> statusMessages = FXCollections.observableList(new LinkedList<String>());
+    private StatusMessageUpdater statusMessageUpdater;
+
+    @Override
+    public void setFields(Match m) {
+        System.out.println("m.getBoardState().getTurn() = " + m.getBoardState().getTurn());
+        if (statusMessages.isEmpty() || !PLAYER_TURN_MSG.equals(statusMessages.get(0))) {
+            statusMessages.add(PLAYER_TURN_MSG);
+        }
+        super.setFields(m);
+    }
+
     // Buttons
     public Button retryButton;
     public ChoiceBox<OpponentChoice> opponentSelector;
@@ -34,11 +48,6 @@ public class LocalNetworkMatch extends AnimatedTwoPlayerVis implements NetworkMa
      */
     private NetworkOpponentService networkOpponentService;
 
-    /**
-     * Run a server on localhost which is used to receive requests
-     */
-    private PlayServer localServer = null;
-
     private void setCompetition() {
         Match match;
         match = new MatchBuilder(2).createMatch();
@@ -48,6 +57,58 @@ public class LocalNetworkMatch extends AnimatedTwoPlayerVis implements NetworkMa
         competition = new Competition(match);
         // Set labels
         setFields(competition.getMatch());
+    }
+
+    @Override
+    protected void initialize() {
+        long t0 = System.currentTimeMillis();
+        super.initialize();
+
+        statusMessageUpdater = new StatusMessageUpdater();
+        statusMessages.addListener(new ListChangeListener<String>() {
+            @Override
+            public void onChanged(Change<? extends String> c) {
+                c.next();
+                if (c.wasAdded()) {
+                    System.out.println("statusMessages added = " + c);
+                    if (!statusMessageUpdater.isRunning()) {
+                        statusMessageUpdater.restart();
+                    }
+                }
+            }
+        });
+
+        networkOpponentService = new NetworkOpponentService(this);
+        networkOpponentService.setBackoffStrategy(ScheduledService.EXPONENTIAL_BACKOFF_STRATEGY);
+
+        setCompetition();
+        // setup opponent selector
+        opponentSelector.valueProperty().addListener((observable, oldValue, newValue) -> {
+            // Do new setup
+            try {
+                switch (newValue.type) {
+                    case OpponentChoice.CLIENT:
+                        networkOpponentService.setConnectToNewHost(newValue.host);
+                        networkOpponentService.restart();
+                        break;
+                    default:
+                        statusMessages.add("Opponent not implemented");
+                        throw new UnsupportedOperationException("Opponent not implemented");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                statusMessages.add("Could not change opponent");
+            }
+        });
+        opponentSelector.getItems().addAll(
+            new OpponentChoice("localhost", "Localhost", OpponentChoice.CLIENT),
+            new OpponentChoice("vandenbrand.eu", "Strom NL", OpponentChoice.CLIENT),
+                new OpponentChoice("18yo959058.51mypc.cn", "Dennis China", OpponentChoice.CLIENT),
+                new OpponentChoice(null, "Host a game", OpponentChoice.HOST)
+        );
+        opponentSelector.getSelectionModel().selectFirst();
+        long t1 = System.currentTimeMillis();
+        System.out.println("Initialized in " + (t1 - t0) + " ms");
     }
 
     @Override
@@ -82,79 +143,13 @@ public class LocalNetworkMatch extends AnimatedTwoPlayerVis implements NetworkMa
         executeMove();
     }
 
-    @Override
-    protected void initialize() {
-        long t0 = System.currentTimeMillis();
-        super.initialize();
-
-        networkOpponentService = new NetworkOpponentService(this);
-        networkOpponentService.setBackoffStrategy(ScheduledService.EXPONENTIAL_BACKOFF_STRATEGY);
-
-        setCompetition();
-        // setup opponent selector
-        opponentSelector.valueProperty().addListener((observable, oldValue, newValue) -> {
-            // Do new setup
-            try {
-                switch (newValue.type) {
-                    case OpponentChoice.CLIENT:
-                        networkOpponentService.setConnectToNewHost(newValue.host);
-                        networkOpponentService.restart();
-                        break;
-                    case OpponentChoice.LOCAL:
-                        closeLocalServer();
-                        AiSolver localServerSolver = new AiSolver();
-                        //localServer = new PlayServer(localServerSolver, Executors.newSingleThreadExecutor());
-                        localServer = PlayServer.getSimplePlayServer(localServerSolver);
-                        localServer.runOnOwnHandler();
-                        networkOpponentService.setConnectToNewHost("localhost");
-                        networkOpponentService.restart();
-                        break;
-                    default:
-                        statusText.setText("Opponent not implemented");
-                        throw new UnsupportedOperationException("Opponent not implemented");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                statusText.setText("Could not change opponent");
-            }
-        });
-        opponentSelector.getItems().addAll(
-                new OpponentChoice(null, "Local", OpponentChoice.LOCAL),
-                new OpponentChoice("vandenbrand.eu", "Dennis NL", OpponentChoice.CLIENT),
-                new OpponentChoice("18yo959058.51mypc.cn", "Dennis China", OpponentChoice.CLIENT),
-                new OpponentChoice("localhost", "Local", OpponentChoice.CLIENT),
-                new OpponentChoice(null, "Computer", OpponentChoice.DIRECT),
-                new OpponentChoice(null, "Host a game", OpponentChoice.HOST)
-        );
-        opponentSelector.getSelectionModel().selectFirst();
-        long t1 = System.currentTimeMillis();
-        System.out.println("Initialized in " + (t1 - t0) + " ms");
-    }
-
-    @Override
-    void clickedField(int index) {
-        if (competition.canMove(index)) {
-            clickMove(index);
-        } else {
-            unClickMove();
-        }
-    }
-
-    private void unClickMove() {
-        selectedMove.set(-1);
-    }
-
-    private void clickMove(int index) {
-        selectedMove.set(index);
-    }
-
     private void executeMove() {
         if (!executing.compareAndSet(false, true)) {
             System.err.println("Still executing");
             return;
         }
         if (selectedMove.get() == -1) {
-            System.err.println("No move set");
+            System.err.println("No moveNow set");
             executing.set(false);
             return;
         }
@@ -164,7 +159,7 @@ public class LocalNetworkMatch extends AnimatedTwoPlayerVis implements NetworkMa
 //            return;
 //        }
 
-        // Do human move
+        // Do human moveNow
         final int[] preHumanBoardState = competition.getFields();
         int gain = competition.move(selectedMove.get());
         int humanMove = competition.getLastMove();
@@ -185,12 +180,12 @@ public class LocalNetworkMatch extends AnimatedTwoPlayerVis implements NetworkMa
         );
         if (winMsg != null) {
             animatorService.setOnSucceeded(event -> {
-                statusText.setText(winMsg);
+                statusMessages.add(winMsg);
                 executing.set(false);
             });
         }
         animatorService.start();
-        statusText.setText(ANIMATING_PLAYER_TURN_MSG);
+        statusMessages.add(ANIMATING_PLAYER_TURN_MSG);
         if (winMsg != null) {
             return;
         }
@@ -199,7 +194,7 @@ public class LocalNetworkMatch extends AnimatedTwoPlayerVis implements NetworkMa
         final int[] preNetworkBoardState = competition.getFields();
         networkOpponentService.setRequestMove(competition.getMatch(), (networkMove) -> {
             opponentText.setText(CONNECTED_TO_MSG);
-            retryButton.setVisible(false);
+            //TODO: retryButton.setVisible(false);
 
             // After the human animation follows the network animation
             EventHandler<WorkerStateEvent> onHumanAnimationCompleted = event1 -> {
@@ -210,10 +205,10 @@ public class LocalNetworkMatch extends AnimatedTwoPlayerVis implements NetworkMa
                             competition.getMatch());
                     animatorService.setOnSucceeded(e -> {
                         executing.set(false);
-                        statusText.setText(PLAYER_TURN_MSG);
+                        statusMessages.add(PLAYER_TURN_MSG);
                     });
                     animatorService.start();
-                    statusText.setText(EXECUTING_OPPONENT_TURN_MSG);
+                    statusMessages.add(EXECUTING_OPPONENT_TURN_MSG);
                 } catch (Error e) {
                     e.printStackTrace();
                     executing.set(false);
@@ -226,8 +221,32 @@ public class LocalNetworkMatch extends AnimatedTwoPlayerVis implements NetworkMa
                 onHumanAnimationCompleted.handle(null);
             }
         });
-        animatorService.setOnSucceeded(event -> statusText.setText(WAITING_FOR_OPPONENT_TURN_MSG));
+        animatorService.setOnSucceeded(event -> statusMessages.add(WAITING_FOR_OPPONENT_TURN_MSG));
         networkOpponentService.restart();
+    }
+
+    @Override
+    void clickedField(int index) {
+        if (competition.canMove(index)) {
+            clickMove(index);
+        } else {
+            unClickMove();
+        }
+    }
+
+    private void unClickMove() {
+        selectedMove.set(-1);
+    }
+
+    private void clickMove(int index) {
+        selectedMove.set(index);
+    }
+
+    @Override
+    public void close() {
+        statusMessageUpdater.cancel();
+        if (networkOpponentService != null)
+            networkOpponentService.close();
     }
 
     public void clickedRetry(ActionEvent actionEvent) {
@@ -251,21 +270,40 @@ public class LocalNetworkMatch extends AnimatedTwoPlayerVis implements NetworkMa
         });
     }
 
-    @Override
-    public void close() {
-        closeLocalServer();
-        if (networkOpponentService != null)
-            networkOpponentService.close();
-    }
-
-    private void closeLocalServer() {
-        if (localServer != null) {
-            try {
-                localServer.cancel();
-            } catch (IOException e) {
-                System.err.println("Could not stop local server");
-                e.printStackTrace();
+    private class StatusMessageUpdater extends ScheduledService {
+        @Override
+        protected Task createTask() {
+            if (statusMessages.size() == 1) {
+                String msg = statusMessages.get(0);
+                statusText.setText(msg);
             }
+            return new Task() {
+                @Override
+                protected Object call() throws Exception {
+                    synchronized (StatusMessageUpdater.this) {
+                        StatusMessageUpdater.this.wait(50);
+                    }
+                    return null;
+                }
+            };
+        }
+
+        @Override
+        protected void succeeded() {
+            // Update
+            String msg;
+            if (statusMessages.size() >= 1) {
+                if (statusMessages.size() == 1) {
+                    msg = statusMessages.get(0);
+                } else {
+                    msg = statusMessages.remove(0);
+                }
+                statusText.setText(msg);
+            }
+            if (statusMessages.size() <= 1) {
+                cancel();
+            }
+            super.succeeded();
         }
     }
 }

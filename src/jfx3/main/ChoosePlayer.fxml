@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="350" prefWidth="700.0"
+            xmlns="http://javafx.com/javafx/8.0.121" fx:controller="jfx3.main.ChoosePlayer">
+    <center>
+        <VBox>
+            <children>
+                <GridPane fx:id="opponentGrid" alignment="CENTER" hgap="10.0" vgap="10.0"
+                          VBox.vgrow="ALWAYS">
+                    <columnConstraints>
+                        <ColumnConstraints halignment="CENTER" prefWidth="200.0"/>
+                        <ColumnConstraints halignment="CENTER" minWidth="10.0"
+                                           prefWidth="200.0"/>
+                        <ColumnConstraints halignment="CENTER" prefWidth="200.0"/>
+                        <ColumnConstraints halignment="CENTER" minWidth="10.0"
+                                           prefWidth="200.0"/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints prefHeight="130.0"/>
+                    </rowConstraints>
+                    <children>
+                        <BorderPane>
+                            <top>
+                                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Computer"
+                                      BorderPane.alignment="CENTER"/>
+                            </top>
+                            <bottom>
+                                <RadioButton fx:id="opponentTypeComputer"
+                                             mnemonicParsing="false"
+                                             BorderPane.alignment="CENTER"/>
+                            </bottom>
+                        </BorderPane>
+                        <BorderPane GridPane.columnIndex="1">
+                            <top>
+                                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Local"
+                                      BorderPane.alignment="CENTER"/>
+                            </top>
+                            <center>
+                                <VBox alignment="CENTER" BorderPane.alignment="CENTER">
+                                    <children>
+                                        <TextField fx:id="localOpponentName"
+                                                   promptText="Opponent name"/>
+                                        <Text fx:id="statusLocalOpponentName"
+                                              strokeType="OUTSIDE" strokeWidth="0.0"
+                                              text="You must provide first name"/>
+                                    </children>
+                                </VBox>
+                            </center>
+                            <bottom>
+                                <RadioButton fx:id="opponentTypeLocal" mnemonicParsing="false"
+                                             BorderPane.alignment="CENTER"/>
+                            </bottom>
+                        </BorderPane>
+                        <BorderPane GridPane.columnIndex="2">
+                            <bottom>
+                                <RadioButton fx:id="opponentTypeNetwork"
+                                             mnemonicParsing="false"
+                                             BorderPane.alignment="CENTER"/>
+                            </bottom>
+                            <top>
+                                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Network"
+                                      BorderPane.alignment="CENTER"/>
+                            </top>
+                            <center>
+                                <VBox alignment="CENTER" BorderPane.alignment="CENTER">
+                                    <children>
+                                        <HBox alignment="CENTER">
+                                            <children>
+                                                <ChoiceBox fx:id="networkOption"/>
+                                                <ProgressIndicator fx:id="networkLoading"
+                                                                   prefHeight="0.0"
+                                                                   prefWidth="20.0">
+                                                    <HBox.margin>
+                                                        <Insets left="10.0"/>
+                                                    </HBox.margin>
+                                                </ProgressIndicator>
+                                            </children>
+                                        </HBox>
+                                        <Text fx:id="networkStatusText" strokeType="OUTSIDE"
+                                              strokeWidth="0.0" text="Connected to 127.0.0.1 "
+                                              wrappingWidth="190.0"/>
+                                    </children>
+                                </VBox>
+                            </center>
+                        </BorderPane>
+                        <BorderPane GridPane.columnIndex="3">
+                            <top>
+                                <Text strokeType="OUTSIDE" strokeWidth="0.0"
+                                      text="Host first game" BorderPane.alignment="CENTER"/>
+                            </top>
+                            <bottom>
+                                <RadioButton fx:id="opponentTypeHost" mnemonicParsing="false"
+                                             BorderPane.alignment="CENTER"/>
+                            </bottom>
+                            <center>
+                                <VBox alignment="CENTER">
+                                    <children>
+                                        <HBox alignment="CENTER">
+                                            <children>
+                                                <TextField fx:id="hostPortText"
+                                                           promptText="Server port"/>
+                                                <ProgressIndicator fx:id="hostLoading"
+                                                                   prefHeight="20.0"
+                                                                   prefWidth="20.0">
+                                                    <HBox.margin>
+                                                        <Insets left="10.0"/>
+                                                    </HBox.margin>
+                                                </ProgressIndicator>
+                                            </children>
+                                        </HBox>
+                                        <Text fx:id="hostStatusText" strokeType="OUTSIDE"
+                                              strokeWidth="0.0" text="Hosting on Port 6666"/>
+                                    </children>
+                                </VBox>
+                            </center>
+                        </BorderPane>
+                    </children>
+                </GridPane>
+                <Separator prefWidth="200.0"/>
+                <GridPane alignment="CENTER" hgap="10.0" VBox.vgrow="ALWAYS">
+                    <columnConstraints>
+                        <ColumnConstraints/>
+                        <ColumnConstraints/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints/>
+                    </rowConstraints>
+                    <children>
+                        <Label text="Name:"/>
+                        <TextField fx:id="playerName" promptText="What is your name?"
+                                   GridPane.columnIndex="1"/>
+                    </children>
+                </GridPane>
+            </children>
+        </VBox>
+    </center>
+    <bottom>
+        <VBox alignment="CENTER" BorderPane.alignment="CENTER">
+            <children>
+                <Text fx:id="errorText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0"
+                      text="Name cannot be empty" visible="false">
+                    <VBox.margin>
+                        <Insets bottom="10.0"/>
+                    </VBox.margin>
+                </Text>
+                <Button fx:id="startButton" mnemonicParsing="false" onAction="#clickedStart"
+                        text="Start"/>
+            </children>
+        </VBox>
+    </bottom>
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+    </padding>
+</BorderPane>

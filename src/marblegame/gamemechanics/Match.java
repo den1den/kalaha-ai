@@ -4,6 +4,9 @@ import marblegame.Util;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A match which can be played between players.
  * This class stores the rules that will be used.
@@ -60,9 +63,17 @@ public class Match {
         return canMove(move, boardState);
     }
 
+    public boolean canMove(int move, int player) {
+        return canMove(move, player, boardState);
+    }
+
     public boolean canMove(int move, BoardState boardState) {
-        int min = startFields[boardState.turn];
-        int max = endFields[boardState.turn];
+        return canMove(move, boardState.turn, boardState);
+    }
+
+    public boolean canMove(int move, int player, BoardState boardState) {
+        int min = startFields[player];
+        int max = endFields[player];
         return move >= min && move <= max && boardState.fields[move] > 0;
     }
 
@@ -99,49 +110,66 @@ public class Match {
 
 
     /**
-     * @param moveIndex the move
-     * @return the winning amount, or MOVE_RESULT_WIN when is was a winning move
+     * @param moveIndex the moveNow
+     * @return the winning amount, or MOVE_RESULT_WIN when is was a winning moveNow
      */
     public int move(int moveIndex) {
         return move(moveIndex, boardState);
     }
 
     /**
-     * @param moveIndex the move
+     * @param moveIndex the moveNow
      * @param board on the board
-     * @return the winning amount, or MOVE_RESULT_WIN when is was a winning move
+     * @return the winning amount, or MOVE_RESULT_WIN when is was a winning moveNow
      */
     public int move(int moveIndex, BoardState board) {
+        BoardState original = new BoardState(board);
         int win = 0;
+
+        // Deplete the field of the moveNow
         int stones = board.fields[moveIndex];
         if (stones <= 0) {
-            throw new Error("Illegal move: move " + moveIndex + " on \n" + toString(board));
+            throw new Error("Illegal moveNow: moveNow " + moveIndex + " on \n" + toString(board));
         }
-
         board.fields[moveIndex] = 0;
 
-        int i;
-        for (i = moveIndex + 1; i <= moveIndex + stones; i++) {
-            board.fields[i % board.fields.length]++;
-        }
-        i %= board.fields.length;
-        int last = (i == 0 ? board.fields.length - 1 : i - 1);
-        int nextLast = (last == 0 ? board.fields.length - 1 : last - 1);
+        // Lay the stones on all next fields
+        int s = 1;
+        int fI;
+        do {
+            fI = (moveIndex + s) % board.fields.length;
+            board.fields[fI]++;
+        } while (s++ < stones);
 
-        if (onlyWinOnOtherTerritory && canMove(last, board)) {
+        // Remember the last two fields
+        int lastFI = fI;
+
+        if (onlyWinOnOtherTerritory && canMove(lastFI, board)) {
             // The final stones are not taken away
             // There is no win
             win = 0;
         } else {
-            if (board.fields[last] == targetAmount[board.turn]) {
-                board.points[board.turn] += board.fields[last];
-                board.fields[last] = 0;
+            // The final stones end up in enemy territory
+            if (board.fields[lastFI] == targetAmount[board.turn]) {
+                // The final stone matches the target amount
+                board.points[board.turn] += board.fields[lastFI];
+                board.fields[lastFI] = 0;
                 win = 1;
 
-                if (board.fields[nextLast] == target2Amount[board.turn]) {
-                    board.points[board.turn] += board.fields[nextLast];
-                    board.fields[nextLast] = 0;
-                    win = 2;
+                if (stones > 1) {
+                    int nextLastFI = (lastFI == 0 ? board.fields.length - 1 : lastFI - 1);
+                    if (board.fields[nextLastFI] == target2Amount[board.turn]) {
+                        // The next last stones match the target2 amount
+                        if (onlyWinOnOtherTerritory && canMove(nextLastFI, board)) {
+                            // The next last stones are of the player itself
+                            // So no extra price will be given
+                        } else {
+                            // Extra points are scores on enemy territory
+                            board.points[board.turn] += board.fields[nextLastFI];
+                            board.fields[nextLastFI] = 0;
+                            win = 2;
+                        }
+                    }
                 }
             }
         }
@@ -181,7 +209,7 @@ public class Match {
     }
 
     /**
-     * @return iff there cannot happen any move anymore
+     * @return iff there cannot happen any moveNow anymore
      */
     public boolean isPad() {
         int min = startFields[boardState.turn];
@@ -195,7 +223,7 @@ public class Match {
     }
 
     /**
-     * @return a possible move with the lowest index
+     * @return a possible moveNow with the lowest index
      */
     public int nextPossibleMove() {
         PossibleMoveIterator possibleMoveIterator = PossibleMoveIterator.from(this);
@@ -203,6 +231,10 @@ public class Match {
             return possibleMoveIterator.next();
         }
         return -1;
+    }
+
+    public int getNPlayer() {
+        return boardState.points.length;
     }
 
     public int getPoints(int player) {
@@ -215,6 +247,21 @@ public class Match {
 
     public boolean hasWon(int player) {
         return getPointsToWin(player, boardState) == 0;
+    }
+
+    public List<Integer> getMoves() {
+        List<Integer> moves = new ArrayList<>();
+        PossibleMoveIterator iterator = PossibleMoveIterator.from(this);
+        while (iterator.hasNext()) {
+            moves.add(iterator.next());
+        }
+        return moves;
+    }
+
+    public BoardState getBoardStateAfterMove(int move) {
+        BoardState newBs = new BoardState(this.boardState);
+        int gain = move(move, newBs);
+        return newBs;
     }
 
     public static class Serializer {

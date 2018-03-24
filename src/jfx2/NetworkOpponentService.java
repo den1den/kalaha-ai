@@ -15,11 +15,16 @@ class NetworkOpponentService extends ScheduledService<NetworkOpponentService.Opp
     private String host;
     private Match match;
 
-    private ExecutorService networkService = Executors.newFixedThreadPool(1);
+    private ExecutorService networkService;
+
+    NetworkOpponentService(NetworkMatch gui, ExecutorService networkService) {
+        this.gui = gui;
+        this.networkService = networkService;
+        setExecutor(networkService);
+    }
 
     NetworkOpponentService(NetworkMatch gui) {
-        this.gui = gui;
-        setExecutor(networkService);
+        this(gui, Executors.newFixedThreadPool(1, r -> new Thread(r, "NetworkOpponentService.networkService")));
     }
 
     /**
@@ -32,7 +37,7 @@ class NetworkOpponentService extends ScheduledService<NetworkOpponentService.Opp
     }
 
     /**
-     * The next start will either request a new move
+     * The next start will either request a new moveNow
      */
     void setRequestMove(Match match, Consumer<Integer> onSuccess) {
         cancel();
@@ -76,6 +81,7 @@ class NetworkOpponentService extends ScheduledService<NetworkOpponentService.Opp
 
     @Override
     protected void failed() {
+        System.err.println(getClass() + ".failed");
         gui.onCannotConnectTo(host, getException());
     }
 
@@ -96,13 +102,13 @@ class NetworkOpponentService extends ScheduledService<NetworkOpponentService.Opp
 
         @Override
         protected OpponentResult call() throws Exception {
-            client.connectImpl();
+            client.ensureOpenSocket();
             return new OpponentResult(client, -1);
         }
     }
 
     /**
-     * Task to ask for a move over the network
+     * Task to ask for a moveNow over the network
      */
     private static class ExecuteMoveTask extends Task<OpponentResult> {
         final PlayClient client;
@@ -116,7 +122,7 @@ class NetworkOpponentService extends ScheduledService<NetworkOpponentService.Opp
         @Override
         protected OpponentResult call() throws Exception {
             int move = client.getResponseImpl(match);
-            System.out.println("ExecuteMoveTask finished: move = " + move);
+            System.out.println("ExecuteMoveTask finished: moveNow = " + move);
             return new OpponentResult(client, move);
         }
     }
@@ -125,7 +131,7 @@ class NetworkOpponentService extends ScheduledService<NetworkOpponentService.Opp
         final PlayClient playClient;
         final int move;
 
-        public OpponentResult(PlayClient playClient, int move) {
+        private OpponentResult(PlayClient playClient, int move) {
             this.playClient = playClient;
             this.move = move;
         }

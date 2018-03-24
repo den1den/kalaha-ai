@@ -60,7 +60,7 @@ public class AiSolver implements Solver {
             depth++;
         }
         if (bestMove == -1) {
-            System.out.println("No best move found");
+            System.out.println("No best moveNow found");
         }
         System.out.println("bestMove=" + bestMove + ", gain = " + bestRating);
         return bestMove;
@@ -126,7 +126,7 @@ public class AiSolver implements Solver {
         return boardState.getPointsOfPlayer();
     }
 
-    public void setMaxDepth(int depth) {
+    public void setDepth(int depth) {
         this.maxDepth = depth;
     }
 }

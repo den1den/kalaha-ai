@@ -5,10 +5,7 @@ import marblegame.gamemechanics.Match;
 import marblegame.gamemechanics.MatchBuilder;
 import org.json.simple.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -16,7 +13,7 @@ import java.net.SocketAddress;
 /**
  * Connects to a PlayServer and retrieves moves
  */
-public class PlayClient implements Solver {
+public class PlayClient implements Solver, Closeable {
     static int timeout = 3000;
 
     private final String host;
@@ -54,7 +51,7 @@ public class PlayClient implements Solver {
                 response = testClient.getResponseImpl(m);
                 gain = m.move(response);
                 if (gain == Match.MOVE_RESULT_WIN) {
-                    System.out.println("winning move = " + response);
+                    System.out.println("winning moveNow = " + response);
                     break;
                 } else if (m.isPad()) {
                     System.out.println("blocked opponent = " + response);
@@ -66,20 +63,6 @@ public class PlayClient implements Solver {
         }
     }
 
-    public void connectImpl() throws IOException {
-        long t0 = System.currentTimeMillis();
-        target = new InetSocketAddress(host, port);
-        if (socket == null) {
-            socket = new Socket();
-        }
-        System.out.println("Connecting to " + target);
-        socket.connect(target, timeout);
-        writer = new PrintWriter(socket.getOutputStream(), true);
-        reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        long t1 = System.currentTimeMillis();
-        System.out.println("Connected to " + target + " (in " + (t1 - t0) + "ms)");
-    }
-
     public boolean isConnected() {
         return socket != null && socket.isConnected() && !socket.isClosed();
     }
@@ -88,7 +71,7 @@ public class PlayClient implements Solver {
         try {
             return getResponseImpl(m);
         } catch (IOException e) {
-            System.err.println("Client could not get response (" + e + "), closing socket");
+            System.err.println("Application could not get response (" + e + "), closing socket");
             //e.printStackTrace();
             if (!socket.isClosed()) {
                 try {
@@ -120,23 +103,48 @@ public class PlayClient implements Solver {
         }
     }
 
-    private void ensureOpenSocket() throws IOException {
-        if (socket.isClosed()) {
+    public void ensureOpenSocket() throws IOException {
+        long t0 = System.currentTimeMillis();
+        if (socket == null || socket.isClosed()) {
             socket = new Socket();
             System.out.println("ensureOpenSocket: creating new socket");
         }
-        try {
-            if (!socket.isConnected()) {
-                connectImpl();
+        if (!socket.isConnected()) {
+            try {
+                target = new InetSocketAddress(host, port);
+                System.out.println("ensureOpenSocket: connecting to " + target);
+                socket.connect(target, timeout);
+                writer = new PrintWriter(socket.getOutputStream(), true);
+                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            } catch (IOException e) {
+                long t1 = System.currentTimeMillis();
+                System.out.println("ensureOpenSocket: connection failed to " + target + " (in " + (t1 - t0) + "ms)");
+                System.out.println("socket.isClosed =" + socket.isClosed());
+                System.out.println("socket.isConnected =" + socket.isConnected());
+                socket.close();
+                throw e;
             }
-        } catch (IOException e) {
-            socket.close();
-            throw e;
         }
+        long t1 = System.currentTimeMillis();
+        System.out.println("ensureOpenSocket: connection checked to " + target + " (in " + (t1 - t0) + "ms)");
     }
 
     @Override
     public int solve(Match m) {
         return getResponse(m);
+    }
+
+    public void close() {
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public String getHost() {
+        return host;
     }
 }
