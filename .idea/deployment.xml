@@ -5,7 +5,14 @@
       <paths name="raspi (local)">
         <serverdata>
           <mappings>
-            <mapping deploy="/" local="$PROJECT_DIR$/out/artifacts/server_jar" web="/" />
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="raspi (remote)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
