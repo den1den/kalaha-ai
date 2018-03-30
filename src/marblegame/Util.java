@@ -179,9 +179,11 @@ public class Util {
         return result;
     }
 
-    public static <T> void swap(T[] arr, int i0, int i1) {
+    public static <T> T[] swap(T[] arr, int i0, int i1) {
         T el = arr[i0];
-        arr
+        arr[i0] = arr[i1];
+        arr[i1] = el;
+        return arr;
     }
 
     public static Writer getFileWriter(String filename) throws IOException {

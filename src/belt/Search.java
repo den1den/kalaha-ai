@@ -53,7 +53,7 @@ public class Search {
          *
          *
          *
-         */
+         *
 
 
         // try only direct paths
@@ -67,6 +67,7 @@ public class Search {
                     orientation, outputResource);
             }
         }
+         */
     }
 
     private List<Field> getAllPlacements(Field field,
@@ -108,6 +109,7 @@ public class Search {
             recipeTypes[i] = nextResource;
 
         }
+        throw new UnsupportedOperationException();
     }
 
     private List<Field> getAllPlacements(Field field, List<int[]> locations, Resource[] recipeTypes, int[] recipeCounts) {
@@ -136,6 +138,7 @@ public class Search {
         if (iLocation == 4) return Collections.emptyList();
         if (iResource == types.length) return Collections.emptyList();
         //TODO: search permutation algorithm
+        throw new UnsupportedOperationException();
     }
 
     private void fillOneStep(int iPlace, int iResource, Resource[] resources, int[] resourceCounts) {

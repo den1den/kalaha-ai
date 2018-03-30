@@ -103,10 +103,6 @@ public class Resource {
         Field field = Field.defaultField();
     }
 
-    public Piece.PieceType getPieceType() {
-
-    }
-
     public State getState() {
         return state;
     }
@@ -134,6 +130,10 @@ public class Resource {
     @Override
     public String toString() {
         return name;
+    }
+
+    public Piece.PieceType getPieceType() {
+        throw new UnsupportedOperationException();
     }
 
     public enum Material {
