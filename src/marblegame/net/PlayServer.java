@@ -1,10 +1,10 @@
 package marblegame.net;
 
-import com.sun.istack.internal.NotNull;
 import marblegame.Util;
 import marblegame.gamemechanics.Match;
 import marblegame.solvers.AiSolver;
 import marblegame.solvers.Solver;
+import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;

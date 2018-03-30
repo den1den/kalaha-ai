@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class AiSolverBoardTests {
     AiSolver2 solver2;
@@ -83,6 +83,6 @@ public class AiSolverBoardTests {
         System.out.println(match);
         solver2.setDepth(depth);
         int move = solver2.solve(match);
-        assertNotEquals("Wrong moveNow", expNotMove, move);
+        assertNotEquals(expNotMove, move, "Wrong moveNow");
     }
 }

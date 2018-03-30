@@ -1,7 +1,7 @@
 package talf.mechanics;
 
-import com.sun.istack.internal.NotNull;
 import javafx.util.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 

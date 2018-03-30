@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/ai-marble-game.iml" filepath="$PROJECT_DIR$/ai-marble-game.iml" />
+      <module fileurl="file://$PROJECT_DIR$/kalaha-ai.iml" filepath="$PROJECT_DIR$/kalaha-ai.iml" />
     </modules>
   </component>
 </project>
