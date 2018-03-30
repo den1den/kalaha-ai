@@ -38,19 +38,15 @@ public class BoardBuilder {
                 }
             }
         }
-        maxX = -1;
-        maxY = -1;//TODO
 
         int players = 0;
         int[][] owner = new int[maxX][];
         Board.PieceType[][] fieldss = new Board.PieceType[maxX][];
         for (int x = 0; x < maxX; x++) {
+            owner[x] = new int[maxY];
+            fieldss[x] = new Board.PieceType[maxY];
             for (int y = 0; y < maxY; y++) {
-                if (y == 0) {
-                    owner[x] = new int[maxY];
-                    fieldss[x] = new Board.PieceType[maxY];
-                }
-                Type f = F[x][y];
+                Type f = F[y][x];
                 owner[x][y] = f.getPlayer();
                 fieldss[x][y] = f.getPieceType();
             }
@@ -67,19 +63,24 @@ public class BoardBuilder {
         H_2, B_2, T12, T22, TR2,
         P03, P13, P23, P33,
         H_3, B_3, T13, T23, TR3,
-        XXX, ___, __0, __1, __2, __3;
+        XXXXX, XXX, _____, ___, _0_, _1_, _2_, _3_;
+
+        private static final Type LAST_NORMAL = TR3;
 
         public Board.PieceType getPieceType() {
             Board.PieceType[] pt = Board.PieceType.values();
-            if (this.ordinal() < 9 * 4)
+            if (this.ordinal() <= LAST_NORMAL.ordinal())
                 return pt[this.ordinal() % pt.length];
             return null;
         }
 
         public int getPlayer() {
-            if (this.ordinal() < 9 * 4)
+            int lastNormal = LAST_NORMAL.ordinal();
+            if (this.ordinal() <= lastNormal)
                 return this.ordinal() / Board.PieceType.values().length;
-            return this.ordinal() - 9 * 4 - 2;
+            if (this == XXXXX || this == XXX) return -2;
+            if (this == _____ || this == ___) return -1;
+            return this.ordinal() - _0_.ordinal();
         }
     }
 }

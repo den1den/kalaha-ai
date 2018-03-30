@@ -84,6 +84,20 @@ public class Board {
         return moves;
     }
 
+    public static final String RESET_COLOR = "\u001B[0m";
+
+    public static String getColor(int player) {
+        return new String[]{
+                "\u001B[32m",
+                "\u001B[37m",
+                "\u001B[31m",
+                "\u001B[35m",
+                "\u001B[33m",
+                "\u001B[34m",
+                "\u001B[36m"
+        }[player + 2];
+    }
+
     @Override
     public String toString() {
         // 0 2 4
@@ -113,27 +127,33 @@ public class Board {
 //            }
             for (int x = 0; x < maxX; x += 2) {
                 if (x >= owner.length || y >= owner[x].length) continue;
-                PieceType pt = getPieceType(x, y);
-                if (pt != null)
-                    s.append(owner[x][y]).append(pt.toString().substring(0, 2));
-                else
-                    s.append(" - ");
-                s.append(" ");
+                toStringField(s, x, y);
             }
             s.append(System.lineSeparator());
             s.append("  ");
             for (int x = 1; x < maxX; x += 2) {
                 if (x >= owner.length || y >= owner[x].length) continue;
-                PieceType pt = getPieceType(x, y);
-                if (pt != null)
-                    s.append(owner[x][y]).append(pt.toString().substring(0, 2));
-                else
-                    s.append(" - ");
-                s.append(" ");
+                toStringField(s, x, y);
             }
             s.append(System.lineSeparator());
         }
         return s.toString();
+    }
+
+    private void toStringField(StringBuilder s, int x, int y) {
+        PieceType pt = getPieceType(x, y);
+        int player = owner[x][y];
+        if (player == -2) {
+            s.append("   ");
+        } else {
+            s.append(getColor(player));
+            if (pt != null)
+                s.append(player).append(pt.toString().substring(0, 2));
+            else
+                s.append(" o ");
+            s.append(RESET_COLOR);
+        }
+        s.append(" ");
     }
 
     public enum PieceType {
