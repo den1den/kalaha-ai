@@ -268,20 +268,20 @@ public class Match {
         public static JSONObject toJson(Match match) {
             JSONObject r = new JSONObject();
             r.put("state", BoardState.Serializer.toJson(match.boardState));
-            r.put("startFields", Util.toArray(match.startFields));
-            r.put("endFields", Util.toArray(match.endFields));
-            r.put("targetAmount", Util.toArray(match.targetAmount));
-            r.put("target2Amount", Util.toArray(match.target2Amount));
+            r.put("startFields", Util.jsonToArray(match.startFields));
+            r.put("endFields", Util.jsonToArray(match.endFields));
+            r.put("targetAmount", Util.jsonToArray(match.targetAmount));
+            r.put("target2Amount", Util.jsonToArray(match.target2Amount));
             return r;
         }
 
         public static Match fromJSONObject(JSONObject object) {
             return new Match(
                     BoardState.Serializer.fromJSONObject((JSONObject) object.get("state")),
-                    Util.toArray((JSONArray) object.get("startFields")),
-                    Util.toArray((JSONArray) object.get("endFields")),
-                    Util.toArray((JSONArray) object.get("targetAmount")),
-                    Util.toArray((JSONArray) object.get("target2Amount"))
+                    Util.jsonToArray((JSONArray) object.get("startFields")),
+                    Util.jsonToArray((JSONArray) object.get("endFields")),
+                    Util.jsonToArray((JSONArray) object.get("targetAmount")),
+                    Util.jsonToArray((JSONArray) object.get("target2Amount"))
             );
         }
     }

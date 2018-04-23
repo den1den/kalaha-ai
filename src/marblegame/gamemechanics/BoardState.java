@@ -174,16 +174,16 @@ public class BoardState {
     static class Serializer {
         static JSONObject toJson(BoardState boardState) {
             JSONObject r = new JSONObject();
-            r.put("fields", Util.toArray(boardState.fields));
-            r.put("points", Util.toArray(boardState.points));
+            r.put("fields", Util.jsonToArray(boardState.fields));
+            r.put("points", Util.jsonToArray(boardState.points));
             r.put("turn", boardState.turn);
             return r;
         }
 
         static BoardState fromJSONObject(JSONObject object) {
             return new BoardState(
-                    Util.toArray((JSONArray) object.get("fields")),
-                    Util.toArray((JSONArray) object.get("points")),
+                    Util.jsonToArray((JSONArray) object.get("fields")),
+                    Util.jsonToArray((JSONArray) object.get("points")),
                     Math.toIntExact((Long) object.get("turn"))
             );
         }

@@ -11,7 +11,7 @@ public class BoardBuilder {
     public Board toBoard() {
         int maxX = 0,
             maxY = boardSpec.length / 2 + boardSpec.length % 2;
-        for (int y = 0; y < boardSpec.length; y += 2) {
+        for (int y = 0; y < boardSpec.length; y++) {
             maxX = Math.max(maxX, boardSpec[y].length * 2 - 1);
             if (y + 1 < boardSpec.length) {
                 maxX = Math.max(maxX, 1 + boardSpec[y].length * 2 - 1);
@@ -27,13 +27,13 @@ public class BoardBuilder {
             Type[] y1s = y + 1 < boardSpec.length ? boardSpec[y + 1] : new Type[0];
 
             for (int x = 0; x < Math.max(y0s.length, y1s.length); x++) {
-                if (x < y0s.length) {
+                int x0 = x * 2;
+                if (x < y0s.length && x0 < F[y / 2].length) {
                     // can be placed
-                    int x0 = x * 2;
                     F[y / 2][x0] = y0s[x];
                 }
-                if (x < y1s.length) {
-                    int x0 = x * 2 + 1;
+                x0 += 1;
+                if (x < y1s.length && x0 < F[y / 2].length) {
                     F[y / 2][x0] = y1s[x];
                 }
             }
@@ -41,12 +41,13 @@ public class BoardBuilder {
 
         int players = 0;
         int[][] owner = new int[maxX][];
-        Board.PieceType[][] fieldss = new Board.PieceType[maxX][];
+        PieceType[][] fieldss = new PieceType[maxX][];
         for (int x = 0; x < maxX; x++) {
             owner[x] = new int[maxY];
-            fieldss[x] = new Board.PieceType[maxY];
+            fieldss[x] = new PieceType[maxY];
             for (int y = 0; y < maxY; y++) {
                 Type f = F[y][x];
+                if (f == null) f = Type.XXX;
                 owner[x][y] = f.getPlayer();
                 fieldss[x][y] = f.getPieceType();
             }
@@ -67,8 +68,8 @@ public class BoardBuilder {
 
         private static final Type LAST_NORMAL = TR3;
 
-        public Board.PieceType getPieceType() {
-            Board.PieceType[] pt = Board.PieceType.values();
+        public PieceType getPieceType() {
+            PieceType[] pt = PieceType.values();
             if (this.ordinal() <= LAST_NORMAL.ordinal())
                 return pt[this.ordinal() % pt.length];
             return null;
@@ -77,7 +78,7 @@ public class BoardBuilder {
         public int getPlayer() {
             int lastNormal = LAST_NORMAL.ordinal();
             if (this.ordinal() <= lastNormal)
-                return this.ordinal() / Board.PieceType.values().length;
+                return this.ordinal() / PieceType.values().length;
             if (this == XXXXX || this == XXX) return -2;
             if (this == _____ || this == ___) return -1;
             return this.ordinal() - _0_.ordinal();

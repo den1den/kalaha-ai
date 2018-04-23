@@ -1,9 +1,13 @@
 package antijoy;
 
+import marblegame.Util;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class Board {
+
     private static final int NOT_POSSIBLE = PieceType.values().length;
     PieceType[][] fieldss; // fieldss[x][y] == null => empty
     int[][] owner; // owner[x][y] == -1 => gia, -2 => disabled
@@ -15,14 +19,20 @@ public class Board {
         this.players = players;
     }
 
-    int[] get(int x, int y, Direction d) {
+    public Board(Board b) {
+        this.fieldss = Util.deepCopy(b.fieldss);
+        this.owner = Util.deepCopy(b.owner);
+        this.players = b.players;
+    }
+
+    int[] get(int x, int y, BoardDirection d) {
         assert x >= 0 && x < fieldss.length;
         assert y >= 0 && y < fieldss[x].length;
         switch (d) {
-            case Up:
-                return y - 1 >= 0 ? new int[]{x, y - 1} : null;
-            case Down:
-                return y + 1 < fieldss[x].length ? new int[]{x, y + 1} : null;
+//            case Up:
+//                return y - 1 >= 0 ? new int[]{x, y - 1} : null;
+//            case Down:
+//                return y + 1 < fieldss[x].length ? new int[]{x, y + 1} : null;
             case LeftUp:
                 if (x % 2 == 0) {
                     // this is up
@@ -48,13 +58,20 @@ public class Board {
                     return x + 1 < fieldss.length ? new int[]{x + 1, y} : null;
                 } else {
                     return x + 1 < fieldss.length && y + 1 < fieldss[x + 1].length
-                        ? new int[]{x + 1, y + 1} : null;
+                            ? new int[]{x + 1, y + 1} : null;
                 }
+                //   0   0
+                // 0   0   0
+                //   0   0
+            case Left:
+                return x - 2 >= 0 ? new int[]{x - 2, y} : null;
+            case Right:
+                return x + 2 <= fieldss.length ? new int[]{x + 2, y} : null;
         }
         throw new Error();
     }
 
-    PieceType getPieceType(int x, int y, Direction d) {
+    PieceType getPieceType(int x, int y, BoardDirection d) {
         int[] loc = get(x, y, d);
         if (loc == null) return null;
         return getPieceType(loc[0], loc[1]);
@@ -70,219 +87,119 @@ public class Board {
 
     List<int[]> getMoves(int player) {
         List<int[]> moves = new ArrayList<>();
-        MoveablePieces moveablePieces = new MoveablePieces(player);
+        int[][] moveablePieces = getMoveablePieces(player);
         MoveScheme ms = new MoveScheme(player);
-        for (int i = 0; i < moveablePieces.locations.length; i++) {
-            int px = moveablePieces.locations[i][0], py = moveablePieces.locations[i][1];
+        for (int i = 0; i < moveablePieces.length; i++) {
+            int px = moveablePieces[i][0], py = moveablePieces[i][1];
             int pieceLevel = getPieceType(px, py).getLevel();
             List<int[]> possibleLocations = ms.getPossibleLocations(pieceLevel);
             for (int[] loc :
-                possibleLocations) {
+                    possibleLocations) {
                 moves.add(new int[]{px, py, loc[0], loc[1]});
             }
         }
         return moves;
     }
 
-    public static final String RESET_COLOR = "\u001B[0m";
-
-    public static String getColor(int player) {
-        return new String[]{
-                "\u001B[32m",
-                "\u001B[37m",
-                "\u001B[31m",
-                "\u001B[35m",
-                "\u001B[33m",
-                "\u001B[34m",
-                "\u001B[36m"
-        }[player + 2];
-    }
-
     @Override
     public String toString() {
-        // 0 2 4
-        //  1 3 5
-        // 0 2 4
-        //  1 3
-
-        //  /---\    /---\
-        // | 0_0 |--| 0_2 |
-        //  \---/    \   /
-        //     |  0_1 |-|
-        //
-        //  x 0 1 2 3 4
-        //y0 AAA CCC EEE
-        //     BBB DDD FFF
-        //y1 000 222 444
-        //     111 333
-        //
-        StringBuilder s = new StringBuilder();
-        int maxY = 0, maxX = owner.length;
-        for (int x = 0; x < fieldss.length; x++) {
-            maxY = Math.max(maxY, fieldss[x].length);
-        }
-        for (int y = 0; y < maxY; y++) {
-//            for (int x = 0; x < maxX; x+=2) {
-//                s.append(" / - \\ ");
-//            }
-            for (int x = 0; x < maxX; x += 2) {
-                if (x >= owner.length || y >= owner[x].length) continue;
-                toStringField(s, x, y);
-            }
-            s.append(System.lineSeparator());
-            s.append("  ");
-            for (int x = 1; x < maxX; x += 2) {
-                if (x >= owner.length || y >= owner[x].length) continue;
-                toStringField(s, x, y);
-            }
-            s.append(System.lineSeparator());
-        }
-        return s.toString();
+        return new BoardPrinter(this).toString();
     }
 
-    private void toStringField(StringBuilder s, int x, int y) {
-        PieceType pt = getPieceType(x, y);
-        int player = owner[x][y];
-        if (player == -2) {
-            s.append("   ");
-        } else {
-            s.append(getColor(player));
-            if (pt != null)
-                s.append(player).append(pt.toString().substring(0, 2));
-            else
-                s.append(" o ");
-            s.append(RESET_COLOR);
-        }
-        s.append(" ");
+    public void set(int x, int y, int owner, PieceType pieceType) {
+        this.fieldss[x][y] = pieceType;
+        this.owner[x][y] = owner;
     }
 
-    public enum PieceType {
-        P0, P1, P2, P3,
-        HOUSE, TOWER1, TOWER2, BASE, TREE;
-
-        public int getPrice() {
-            switch (this) {
-                case P0:
-                    return 10;
-                case P1:
-                    return 20;
-                case P2:
-                    return 30;
-                case P3:
-                    return 40;
-                case TOWER1:
-                    return 15;
-                case TOWER2:
-                    return 35;
-                default:
-                    return -1;
-            }
-        }
-
-        public boolean canHit11(PieceType type) {
-            assert canMove();
-            switch (type) {
-                case TREE:
-                case HOUSE:
-                    return true;
-                case BASE:
-                    return ordinal() >= 1;
-                case TOWER1:
-                    return ordinal() >= 3;
-                case TOWER2:
-                    return ordinal() >= 4;
-                case P3:
-                    return this == P3;
-                default:
-                    assert type.canMove();
-                    return type.ordinal() < ordinal();
-            }
-        }
-
-        private boolean canMove() {
-            switch (this) {
-                case P0:
-                case P1:
-                case P2:
-                case P3:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        public boolean isBuilding() {
-            switch (this) {
-                case TOWER2:
-                case TOWER1:
-                case HOUSE:
-                case BASE:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        public boolean hasInfluence() {
-            switch (this) {
-                case BASE:
-                case TOWER1:
-                case TOWER2:
-                case P3:
-                case P2:
-                case P1:
-                case P0:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        public int pointsNeededToHit() {
-            switch (this) {
-                case BASE:
-                case P0:
-                    return 1;
-                case TOWER1:
-                case P1:
-                    return 2;
-                case TOWER2:
-                case P2:
-                case P3:
-                    return 3;
-                default:
-                    return 0;
-            }
-        }
-
-        public int getLevel() {
-            int points = ordinal();
-            assert points <= 3;
-            return points;
-        }
+    public void move(int player, int x, int y, int toX, int toY) {
+        assert canMove(player, x, y, toX, toY);
+        throw new UnsupportedOperationException();
     }
 
-    private class MoveablePieces {
-        int[][] locations;
+    private boolean canMove(int player, int x, int y, int toX, int toY) {
+        PieceType p = this.fieldss[x][y];
+        if (this.owner[x][y] != player) return false;
+        if (!p.canMove()) return false;
 
-        public MoveablePieces(int player) {
+        if (this.owner[toX][toY] != player) {
+            int[][] defend = getMoveablePieces(player);
+            if (defend[toX][toY] < p.getLevel()) return false;
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    public List<int[]> getMoves(final int x, final int y) {
+        // 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+        //  0 0 0 - - - - - - 0 0 0 0 0 0 0 0 0
+        // 0 0 0 | 0 0 0 0 0 | 0 0 0 0 0 0 0 0
+        //  0 0 | 0 0 0 0 0 0 | 0 0 0 0 0 0 0 0
+        // 0 0 | 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0
+        //  0 | X X 0 0 0 0 0 0 | 0 0 0 0 0 0 0
+        // 0 | X 0 0 X - 0 0 0 0 | 0 0 0 0 0 0
+        //  0 | X X 0 0 0 0 0 0 | 0 0 0 0 0 0 0
+        // 0 0 | 0 0 0 0 0 0 0 | 0 0 0 0 0 0 0
+        List<int[]> moves = new ArrayList<>();
+
+        int owner = owner(x, y);
+        int attack = getPieceType(x, y).getLevel();
+        MoveScheme defend = new MoveScheme(owner);
+        int[][] walkDistance = Util.deepCopy(this.owner, -1);
+
+        ArrayList<int[]> frontier = new ArrayList<>();
+        frontier.add(new int[]{x, y});
+        walkDistance[x][y] = 0;
+
+        for (int step = 0; step < 5; step++) {
+            ArrayList<int[]> newFrontier = new ArrayList<>();
+            int frontierX, frontierY;
+            for (int f = 0; f < frontier.size(); f++) {
+                frontierX = frontier.get(f)[0];
+                frontierY = frontier.get(f)[1];
+                for (BoardDirection direction :
+                        BoardDirection.values()) {
+                    int[] newLoc = get(frontierX, frontierY, direction);
+                    if (newLoc == null) continue;
+                    int newX = newLoc[0];
+                    int newY = newLoc[1];
+                    if (defend.obstacles[newX][newY] > attack) continue;
+                    // Dont barge into enemy territoy
+                    if (walkDistance[newX][newY] != 0 && walkDistance[newX][newY] < step) {
+                        newFrontier.add(new int[]{newX, newY});
+                    }
+                }
+            }
+            moves.addAll(newFrontier);
+            frontier = newFrontier;
+        }
+
+        // remove duplicates
+        HashSet<Move> movesSet = new HashSet<>();
+        for (int i = 0; i < moves.size(); i++) {
+            int[] m = moves.get(i);
+            movesSet.add(new Move(x, y, m[0], m[1]));
+        }
+        moves.clear();
+        for (Move m :
+                movesSet) {
+            moves.add(new int[]{m.startx, m.starty, m.endx, m.endy});
+        }
+        return moves;
+    }
+
+    int[][] getMoveablePieces(int player) {
             ArrayList<int[]> locations = new ArrayList<>();
             for (int x = 0; x < owner.length; x++) {
                 for (int y = 0; y < owner[x].length; y++) {
                     if (owner[x][y] == player) {
-                        if (fieldss[x][y].canMove()) {
+                        PieceType piece = fieldss[x][y];
+                        if (piece != null && piece.canMove()) {
                             locations.add(new int[]{x, y});
                         }
                     }
                 }
             }
-            this.locations = (int[][]) locations.toArray();
+        return Util.listToArray(locations);
         }
-    }
-
-    public enum Direction {
-        RightDown, Down, LeftDown, LeftUp, Up, RightUp
-    }
 
     private class MoveScheme {
         // -1: not possible, otherwise minimal level needed
@@ -302,28 +219,33 @@ public class Board {
                     PieceType piece = getPieceType(x, y);
 
                     if (owner == -2) {
-                        // no fieldss
+                        // no field
+                        obstacles[x][y] = NOT_POSSIBLE;
                         continue;
                     } else if (owner == player) {
                         // your own fieldss
-                        partialValue = piece.isBuilding() ? NOT_POSSIBLE : 0;
+                        if (piece == null) partialValue = 0;
+                        else partialValue = piece.isBlocking() ? NOT_POSSIBLE : 0;
                     } else {
                         // Opponent or gaea
-                        if (piece == null) continue;
-                        else if (piece.hasInfluence()) {
+                        if (piece == null) {
+                            // base case
+                            partialValue = 0;
+                        } else if (piece.hasInfluence()) {
                             partialValue = piece.pointsNeededToHit();
                             // Update all surrounding fields
-                            for (Direction d : Direction.values()) {
+                            for (BoardDirection d : BoardDirection.values()) {
                                 int[] newLoc = get(x, y, d);
                                 if (newLoc == null) continue;
                                 int newLocX = newLoc[0], newLocY = newLoc[1];
+                                if (owner(newLocX, newLocY) != owner) continue;
                                 obstacles[newLocX][newLocY] = Math.max
-                                    (obstacles[newLocX][newLocY], partialValue);
+                                        (obstacles[newLocX][newLocY], partialValue);
                             }
                         } else {
                             // no influence => no points needed to hit
                             assert piece.pointsNeededToHit() == 0;
-                            continue;
+                            partialValue = 0;
                         }
                     }
                     obstacles[x][y] = Math.max(obstacles[x][y], partialValue);

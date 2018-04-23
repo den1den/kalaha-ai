@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 
 @SuppressWarnings("ALL")
 public class Util {
-    public static JSONArray toArray(int[] ints) {
+    public static JSONArray jsonToArray(int[] ints) {
         JSONArray arr = new JSONArray();
         for (int i = 0; i < ints.length; i++) {
             arr.add(ints[i]);
@@ -27,7 +27,7 @@ public class Util {
         return arr;
     }
 
-    public static int[] toArray(JSONArray arr) {
+    public static int[] jsonToArray(JSONArray arr) {
         int[] ints = new int[arr.size()];
         for (int i = 0; i < ints.length; i++) {
             ints[i] = Math.toIntExact((Long) arr.get(i));
@@ -201,6 +201,31 @@ public class Util {
                 xConsumer.accept(newValue);
             }
         };
+    }
+
+    public static int[][] listToArray(ArrayList<int[]> intList) {
+        int[][] r = new int[intList.size()][];
+        for (int i = 0; i < r.length; i++) {
+            r[i] = intList.get(i);
+        }
+        return r;
+    }
+
+    public static int[][] deepCopy(int[][] array) {
+        int[][] a = new int[array.length][];
+        for (int i = 0; i < a.length; i++) {
+            a[i] = Arrays.copyOf(array[i], array[i].length);
+        }
+        return a;
+    }
+
+    public static int[][] deepCopy(int[][] arr, int values) {
+        int[][] r = new int[arr.length][];
+        for (int i = 0; i < r.length; i++) {
+            r[i] = new int[arr[i].length];
+            Arrays.fill(r[i], values);
+        }
+        return r;
     }
 
     public static class JsonObj extends JSONObject {
