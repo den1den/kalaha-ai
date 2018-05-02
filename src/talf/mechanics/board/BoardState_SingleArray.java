@@ -33,7 +33,7 @@ public class BoardState_SingleArray {
 //        }
 //    }
 //
-//    public static BoardState breakthru() {
+//    public static BoardModel breakthru() {
 //        short[][] fields = new short[11][];
 //        for (int i = 0; i < fields.length; i++) {
 //            fields[i] = new short[11];
@@ -52,7 +52,7 @@ public class BoardState_SingleArray {
 //            fields[i][7] = DEFEND;
 //        }
 //        fields[5][5] = KING;
-//        return new BoardState(fields);
+//        return new BoardModel(fields);
 //    }
 //
 //    public ShortBuffer findMoves(int i) {
@@ -152,7 +152,7 @@ public class BoardState_SingleArray {
 //    }
 //
 //    public static void main(String[] args) {
-//        BoardState test = breakthru();
+//        BoardModel test = breakthru();
 //        System.out.println("test = " + test);
 //    }
 //
@@ -284,7 +284,7 @@ public class BoardState_SingleArray {
 //    }
 //
 //    public void reset() {
-//        BoardState b = breakthru();
+//        BoardModel b = breakthru();
 //        System.arraycopy(b.fields, 0, fields, 0, b.fields.length);
 //    }
 //

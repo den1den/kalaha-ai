@@ -6,14 +6,14 @@ import talf.mechanics.Coordinate;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 
-public class BoardStateTest {
+public class BoardModelTest {
     @Test
     public void iterator() {
-        BoardState boardState = new BoardState(new byte[][]{
+        BoardModel boardModel = new BoardModel(new byte[][]{
             new byte[]{2, 2},
             new byte[]{2, 2}
         }, -1, -1, 3, 0, 0);
-        BoardState.PiecesIterator i = boardState.new PiecesIterator((byte) 2);
+        BoardModel.PiecesIterator i = boardModel.new PiecesIterator((byte) 2);
         assert i.hasNext();
         assert i.next().equals(new Coordinate(0, 0));
         assert i.hasNext();

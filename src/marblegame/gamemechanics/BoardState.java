@@ -89,7 +89,7 @@ public class BoardState {
 
     @Override
     public String toString() {
-        StringBuilder r = new StringBuilder("BoardPane ")
+        StringBuilder r = new StringBuilder("BoardView ")
             .append(super.toString())
             .append(System.lineSeparator())
             .append("       ")
@@ -101,7 +101,7 @@ public class BoardState {
     }
 
     public String toStringWithTurn() {
-        StringBuilder r = new StringBuilder("BoardPane: ");
+        StringBuilder r = new StringBuilder("BoardView: ");
         if (turn == 0) {
             r.append("-> ");
         } else {

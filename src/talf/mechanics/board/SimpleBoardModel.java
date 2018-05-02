@@ -2,9 +2,9 @@ package talf.mechanics.board;
 
 import talf.mechanics.Coordinate;
 
-public class SimpleBoardState extends BoardState {
+public class SimpleBoardModel extends BoardModel {
 
-    SimpleBoardState(byte[][] fields, int kingX, int kingY,
+    SimpleBoardModel(byte[][] fields, int kingX, int kingY,
                      int center, int totalSilver, int totalGold) {
         super(fields, kingX, kingY, center, totalGold, totalSilver);
     }
@@ -20,7 +20,7 @@ public class SimpleBoardState extends BoardState {
     }
 
     @Override
-    public int distanceToBorderKing() {
+    public int getDistanceToBorderKing() {
         if (!hasKing()) {
             return -1;
         }

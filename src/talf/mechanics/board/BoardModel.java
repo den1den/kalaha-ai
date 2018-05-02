@@ -8,7 +8,10 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class BoardState {
+public class BoardModel {
+    /**
+     * Keeps track of the board only
+     */
     final protected static byte EMPTY = 0;
     final protected static byte SILVER = 1;
     final protected static byte GOLD = 2;
@@ -21,7 +24,7 @@ public class BoardState {
     protected int kingX;
     protected int kingY;
 
-    public BoardState(byte[][] fields, int kingX, int kingY,
+    public BoardModel(byte[][] fields, int kingX, int kingY,
                       int center, int totalSilver, int totalGold) {
         this.fields = fields;
         this.kingX = kingX;
@@ -31,8 +34,8 @@ public class BoardState {
         this.totalGold = totalGold;
     }
 
-    public BoardState copy() {
-        return new BoardState(Util.deepCopy(fields),
+    public BoardModel copy() {
+        return new BoardModel(Util.deepCopy(fields),
             kingX, kingY,
             center,
             totalGold, totalSilver
@@ -149,6 +152,11 @@ public class BoardState {
         }
     }
 
+    boolean isKingOnEdge() {
+        return kingX == 0 || kingX == fields.length - 1
+                || kingY == 0 || kingY == fields[kingX].length - 1;
+    }
+
 
     public boolean canMove(Coordinate source, Coordinate target) {
         byte piece = fields[source.x][source.y];
@@ -226,11 +234,6 @@ public class BoardState {
             return 1;
         }
         return 0;
-    }
-
-    boolean isKingOnEdge() {
-        return kingX == 0 || kingX == fields.length - 1
-            || kingY == 0 || kingY == fields[kingX].length - 1;
     }
 
 
@@ -376,7 +379,7 @@ public class BoardState {
     }
 
 
-    public int distanceToBorderKing() {
+    public int getDistanceToBorderKing() {
         if (!hasKing()) {
             return -1;
         }

@@ -65,9 +65,9 @@ public class BoardTest {
 
     private void showBoardWithMoves() {
         System.out.println("board = \n" + new BoardPrinter(board).toStringXY());
-        List<int[]> moves = board.getMoves(0);
-        for (int[] m : moves) {
-            System.out.println("m = " + m[0] + "," + m[1] + " -> " + m[2] + "," + m[3]);
+        List<Move> moves = board.getMoves(0);
+        for (Move m : moves) {
+            System.out.println("m = " + m);
         }
     }
 

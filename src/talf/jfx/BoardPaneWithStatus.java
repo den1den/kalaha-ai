@@ -7,16 +7,16 @@ import talf.mechanics.Match;
 
 public class BoardPaneWithStatus extends BorderPane {
     private final Match match;
-    BoardPane boardPane;
+    BoardView boardView;
     StringProperty statusTextProp;
 
     public BoardPaneWithStatus(Match match, boolean canMoveSilver, boolean canMoveGold) {
         this.match = match;
-        boardPane = new BoardPane(match, canMoveSilver, canMoveGold);
-        boardPane.setOnMoved(this::onMoved);
+        boardView = new BoardView(match.board, canMoveSilver, canMoveGold);
+        boardView.setOnMoved(this::onMoved);
 
         Text statusText = new Text();
-        setCenter(boardPane);
+        setCenter(boardView);
         setBottom(statusText);
         statusTextProp = statusText.textProperty();
 

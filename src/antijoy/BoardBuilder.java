@@ -41,18 +41,18 @@ public class BoardBuilder {
 
         int players = 0;
         int[][] owner = new int[maxX][];
-        PieceType[][] fieldss = new PieceType[maxX][];
+        Piece[][] fieldss = new Piece[maxX][];
         for (int x = 0; x < maxX; x++) {
             owner[x] = new int[maxY];
-            fieldss[x] = new PieceType[maxY];
+            fieldss[x] = new Piece[maxY];
             for (int y = 0; y < maxY; y++) {
                 Type f = F[y][x];
                 if (f == null) f = Type.XXX;
                 owner[x][y] = f.getPlayer();
-                fieldss[x][y] = f.getPieceType();
+                fieldss[x][y] = new Piece(x, y, f.getPieceType());
             }
         }
-        return new Board(fieldss, owner, players);
+        return new Board(fieldss, owner, new int[players], players);
     }
 
     public enum Type {

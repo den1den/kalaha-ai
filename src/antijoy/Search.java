@@ -10,12 +10,14 @@ public class Search {
     }
 
     public void search() {
-        List<int[]> moves = this.board.getMoves(0);
+        List<Move> moves = this.board.getMoves(0);
         for (int i = 0; i < moves.size(); i++) {
-            int[] m = moves.get(i);
+            Move m = moves.get(i);
 
             Board board = new Board(this.board);
-            board.move(0, m[0], m[1], m[2], m[3]);
+            board.move(0, m);
+            System.out.println("board" + i + " = " + board);
+
         }
     }
 }

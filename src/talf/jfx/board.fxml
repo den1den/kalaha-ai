@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="294.0" prefWidth="400.0"
-            xmlns="http://javafx.com/javafx/8.0.121" fx:controller="talf.jfx.BoardPane">
+            xmlns="http://javafx.com/javafx/8.0.121" fx:controller="talf.jfx.BoardView">
     <center>
         <GridPane gridLinesVisible="true">
             <children>

@@ -2,27 +2,36 @@ package antijoy;
 
 import marblegame.Util;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class Board {
 
     private static final int NOT_POSSIBLE = PieceType.values().length;
-    PieceType[][] fieldss; // fieldss[x][y] == null => empty
+    Piece[][] fieldss; // fieldss[x][y] == null => empty
     int[][] owner; // owner[x][y] == -1 => gia, -2 => disabled
     int players;
 
-    public Board(PieceType[][] fieldss, int[][] owner, int players) {
+    int[] money;
+
+    List<Set<Piece>> pieces;
+
+    public Board(Piece[][] fieldss, int[][] owner, int[] money, int players) {
         this.fieldss = fieldss;
         this.owner = owner;
+        this.money = money;
         this.players = players;
+        pieces = new ArrayList<>(players);
     }
 
     public Board(Board b) {
-        this.fieldss = Util.deepCopy(b.fieldss);
+        this.fieldss = Piece.deepCopyPiece(b.fieldss);
         this.owner = Util.deepCopy(b.owner);
+        this.money = Arrays.copyOf(b.money, b.money.length);
         this.players = b.players;
+        pieces = new ArrayList<>(players);
+        for (int i = 0; i < players; i++) {
+            pieces.add(new HashSet<>(b.pieces.get(i)));
+        }
     }
 
     int[] get(int x, int y, BoardDirection d) {
@@ -78,15 +87,15 @@ public class Board {
     }
 
     PieceType getPieceType(int x, int y) {
-        return fieldss[x][y];
+        return fieldss[x][y].type;
     }
 
     int owner(int x, int y) {
         return owner[x][y];
     }
 
-    List<int[]> getMoves(int player) {
-        List<int[]> moves = new ArrayList<>();
+    List<Move> getMoves(int player) {
+        List<Move> moves = new ArrayList<>();
         int[][] moveablePieces = getMoveablePieces(player);
         MoveScheme ms = new MoveScheme(player);
         for (int i = 0; i < moveablePieces.length; i++) {
@@ -95,7 +104,7 @@ public class Board {
             List<int[]> possibleLocations = ms.getPossibleLocations(pieceLevel);
             for (int[] loc :
                     possibleLocations) {
-                moves.add(new int[]{px, py, loc[0], loc[1]});
+                moves.add(new Move(px, py, loc[0], loc[1]));
             }
         }
         return moves;
@@ -107,7 +116,7 @@ public class Board {
     }
 
     public void set(int x, int y, int owner, PieceType pieceType) {
-        this.fieldss[x][y] = pieceType;
+        this.fieldss[x][y] = new Piece(x, y, pieceType);
         this.owner[x][y] = owner;
     }
 
@@ -117,7 +126,7 @@ public class Board {
     }
 
     private boolean canMove(int player, int x, int y, int toX, int toY) {
-        PieceType p = this.fieldss[x][y];
+        PieceType p = this.fieldss[x][y].type;
         if (this.owner[x][y] != player) return false;
         if (!p.canMove()) return false;
 
@@ -187,19 +196,41 @@ public class Board {
     }
 
     int[][] getMoveablePieces(int player) {
-            ArrayList<int[]> locations = new ArrayList<>();
-            for (int x = 0; x < owner.length; x++) {
-                for (int y = 0; y < owner[x].length; y++) {
-                    if (owner[x][y] == player) {
-                        PieceType piece = fieldss[x][y];
-                        if (piece != null && piece.canMove()) {
-                            locations.add(new int[]{x, y});
-                        }
+        ArrayList<int[]> locations = new ArrayList<>();
+        for (int x = 0; x < owner.length; x++) {
+            for (int y = 0; y < owner[x].length; y++) {
+                if (owner[x][y] == player) {
+                    PieceType piece = fieldss[x][y].type;
+                    if (piece != null && piece.canMove()) {
+                        locations.add(new int[]{x, y});
                     }
                 }
             }
-        return Util.listToArray(locations);
         }
+        return Util.listToArray(locations);
+    }
+
+    public void move(int player, Move move) {
+        assert getMoves(player).contains(move);
+        Piece piece = fieldss[move.startx][move.starty];
+        Piece targetPiece = fieldss[move.endx][move.endy];
+
+        fieldss[move.startx][move.starty] = null;
+        fieldss[move.endx][move.endy] = piece;
+        piece.x = move.endx;
+        piece.y = move.endy;
+        owner[move.endy][move.endy] = player;
+
+        targetPiece.x = -1;
+        targetPiece.y = -1;
+
+        if (owner(move.endx, move.endy) == player) {
+            if (targetPiece.type == PieceType.TREE) {
+                money[player] += Settings.TREE_GAIN;
+            }
+        }
+
+    }
 
     private class MoveScheme {
         // -1: not possible, otherwise minimal level needed

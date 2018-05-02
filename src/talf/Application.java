@@ -1,13 +1,14 @@
 package talf;
 
 import javafx.application.Platform;
+import javafx.concurrent.*;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import talf.ai.AiSolverB;
 import talf.jfx.BoardPaneWithStatus;
 import talf.mechanics.Match;
 import talf.mechanics.Move;
-import talf.mechanics.board.BoardState;
+import talf.mechanics.board.BoardModel;
 import talf.mechanics.board.BoardStateConstructor;
 
 import java.util.Random;
@@ -16,13 +17,14 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Application extends javafx.application.Application {
-    BoardState state;
     Match match;
-    Scene s;
     BoardPaneWithStatus boardPaneController;
 
-    boolean playerFirst = true;
+    boolean playerFirst = false;
     boolean playerIsSilver = true;
+
+    AiCalculatorService aiCalculatorService;
+    private Stage primaryStage;
 
     public static void main(String[] args) {
         launch(args);
@@ -30,21 +32,45 @@ public class Application extends javafx.application.Application {
 
     @Override
     public void start(Stage primaryStage) {
+        aiCalculatorService = new AiCalculatorService();
+        aiCalculatorService.setSolver(new AiSolverB());
+        aiCalculatorService.setOnScheduled(this::computerDone);
 
-        state = BoardStateConstructor.breakthru();
+        this.primaryStage = primaryStage;
+        initBoard();
+    }
+
+    private void initBoard() {
+        BoardModel state = BoardStateConstructor.breakthru();
         match = new Match(state, playerIsSilver == playerFirst);
         boardPaneController = new BoardPaneWithStatus(match, playerIsSilver, !playerIsSilver);
 
-        s = new Scene(boardPaneController);
+        Scene s = new Scene(boardPaneController);
         primaryStage.setScene(s);
         primaryStage.show();
 
         aiGame();
     }
 
+    private void computerDone(WorkerStateEvent event) {
+        AiCalculatorService.Result result = aiCalculatorService.getValue();
+        if(result == null) {
+            aiCalculatorService.cancel();
+            return;
+        }
+        if(result.status == AiCalculatorService.Result.COMPLETE) {
+            Move move = result.resultingMove;
+            match.move(move);
+            if (!match.isFirsTurn()) {
+                aiCalculatorService.start();
+            } else {
+
+            }
+        }
+    }
+
     private void reset() {
-        state = BoardStateConstructor.breakthru();
-        match.reset(state, true);
+        initBoard();
     }
 
     private void aiGame() {
@@ -54,13 +80,10 @@ public class Application extends javafx.application.Application {
                 // Players turn
             } else {
                 // Player not turn
-                AiSolverB solverB = new AiSolverB();
-                Move move = solverB.solve(match);
-                match.move(move);
-                if (!match.isFirsTurn()) {
-                    move = solverB.solve(match);
-                    match.move(move);
-                }
+                aiCalculatorService.cancel();
+                aiCalculatorService.reset();
+                aiCalculatorService.setMatch(match);
+                aiCalculatorService.start();
             }
         });
     }
@@ -83,7 +106,7 @@ public class Application extends javafx.application.Application {
 //                            match.getAllMoves(allMoves);
 //                            ArrayList<Coordinate> pieces = new ArrayList<>(allMoves.keySet());
 //                            if (pieces.isEmpty()) {
-//                                s.setRoot(new BoardPane(match));
+//                                s.setRoot(new BoardView(match));
 //                                System.out.println("done");
 //                                reset();
 //                                break tsk;
@@ -96,14 +119,14 @@ public class Application extends javafx.application.Application {
 //
 //                            int r = match.move(piece, move);
 //                            if(r == Integer.MAX_VALUE){
-//                                s.setRoot(new BoardPane(match));
+//                                s.setRoot(new BoardView(match));
 //                                System.out.println("win after "+match.getTurns());
 //                                reset();
 //                                wins.getAndIncrement();
 //                                break tsk;
 //                            }
                         }
-//                        s.setRoot(new BoardPane(match, canMoveSilver, canMoveGold));
+//                        s.setRoot(new BoardView(match, canMoveSilver, canMoveGold));
                     }
                     long t1 = System.currentTimeMillis();
                     //System.out.println("t1-t0 = " + (t1 - t0));
@@ -112,5 +135,43 @@ public class Application extends javafx.application.Application {
         };
         //t.schedule(task, 0);
         t.scheduleAtFixedRate(task, 0, 1000);
+    }
+
+    private static class AiCalculatorService extends Service<AiCalculatorService.Result> {
+
+        Match match;
+        AiSolverB solver;
+
+        public void setSolver(AiSolverB solver) {
+            this.solver = solver;
+        }
+
+        public void setMatch(Match match) {
+            this.match = match;
+        }
+
+        @Override
+        protected Task<Result> createTask() {
+            final Match match = this.match;
+            final AiSolverB solver = this.solver;
+            return new Task<>() {
+                @Override
+                protected Result call() throws Exception {
+                    Move move = solver.solve(match);
+                    return new Result(Result.COMPLETE, move);
+                }
+            };
+        }
+
+        static class Result {
+            public static final int COMPLETE = 0;
+            private final int status;
+            private final Move resultingMove;
+
+            public Result(int status, Move resultingMove) {
+                this.status = status;
+                this.resultingMove = resultingMove;
+            }
+        }
     }
 }

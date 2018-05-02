@@ -5,6 +5,7 @@ import marblegame.Util;
 import talf.mechanics.Coordinate;
 import talf.mechanics.Match;
 import talf.mechanics.Move;
+import talf.mechanics.board.BoardModel;
 
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,7 @@ public class AiSolverB implements Solver {
 
         long t1 = System.currentTimeMillis();
         System.out.println(
-            "currentRating=" + rating(match)
+            "currentRating=" + rating(match.board)
                 + " bestRating=" + bestRating
                 + " move=" + bestMove
                 + " time=" + (t1 - t0)
@@ -183,35 +184,35 @@ public class AiSolverB implements Solver {
     }
 
     private double onDepthReached(Match match) {
-        double r = rating(match);
+        double r = rating(match.board);
         if (rating2Maps.size() > 0) {
             Double higest = rating2Maps.lastKey();
             if (r > higest) {
                 System.out.println("r = " + higest + " -> " + r +
                     ", turns = " + match.getTurns());
-                System.out.println(match.getBoardCopy());
+                System.out.println(match.board);
             }
         }
         Util.putSorted(rating2Maps, r, match.copy());
         return r;
     }
 
-    private double heuristic(Match match) {
+    private double heuristic(BoardModel board) {
         // assume player is gold
         // higher rating, is better play for gold
-        if (!match.hasKing()) {
+        if (!board.hasKing()) {
             return -10;
         }
-        if (match.canHitKing()) {
+        if (board.canHitKing()) {
             return -5;
         }
         double distanceToBorderKing =
-            (double) match.getDistanceToBorderKing() / match.maxDistToBorder();
+            (double) board.getDistanceToBorderKing() / board.maxDistToBorder();
 
-        int gold = match.countGold();
-        double pieces = (double) gold / match.getMaxGoldPieces();
-        double covered = (double) match.countGoldCovered() / gold;
-        double canhit = (double) match.countGoldCanHit() / gold;
+        int gold = board.countGold();
+        double pieces = (double) gold / board.getMaxGoldPieces();
+        double covered = (double) board.countGoldCovered() / gold;
+        double canhit = (double) board.countGoldCanHit() / gold;
         double rating = 1
             + 9 * (1 - distanceToBorderKing)
             + 3 * canhit
@@ -220,16 +221,16 @@ public class AiSolverB implements Solver {
         return rating;
     }
 
-    private double rating(Match match) {
-        if (!match.hasKing()) {
+    private double rating(BoardModel board) {
+        if (!board.hasKing()) {
             return -10;
         }
         double distanceToBorderKing =
-            (double) match.getDistanceToBorderKing() / match.maxDistToBorder();
-        double gold = (double) match.countGold() / match.getMaxGoldPieces();
-        double silver = (double) match.countSilver() / match.getMaxSilverPieces();
+            (double) board.getDistanceToBorderKing() / board.maxDistToBorder();
+        double gold = (double) board.countGold() / board.getMaxGoldPieces();
+        double silver = (double) board.countSilver() / board.getMaxSilverPieces();
         return
-            4 * match.countGold()
+            4 * board.countGold()
                 - 2 * silver
                 + distanceToBorderKing;
     }

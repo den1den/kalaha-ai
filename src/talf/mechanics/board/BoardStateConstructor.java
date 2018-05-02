@@ -2,8 +2,8 @@ package talf.mechanics.board;
 
 import talf.mechanics.Coordinate;
 
-import static talf.mechanics.board.BoardState.GOLD;
-import static talf.mechanics.board.BoardState.SILVER;
+import static talf.mechanics.board.BoardModel.GOLD;
+import static talf.mechanics.board.BoardModel.SILVER;
 
 public class BoardStateConstructor {
 
@@ -37,7 +37,7 @@ public class BoardStateConstructor {
         this.center = center;
     }
 
-    public static BoardState verySimpleBoardState() {
+    public static BoardModel verySimpleBoardState() {
         return new BoardStateConstructor(5, 2, 2)
             .setKing(0, 0)
             .setLineGold(2)
@@ -45,7 +45,7 @@ public class BoardStateConstructor {
             .toBoard(true);
     }
 
-    public static BoardState simpleBoardState() {
+    public static BoardModel simpleBoardState() {
         int WIDTH = 8, HEIGHT = 3;
         return new BoardStateConstructor(WIDTH, HEIGHT, WIDTH / 2)
             .setKing(0, HEIGHT / 2)
@@ -56,7 +56,7 @@ public class BoardStateConstructor {
             .toBoard(true);
     }
 
-    public static BoardState breakthru() {
+    public static BoardModel breakthru() {
         byte[][] fields = new byte[11][];
         for (int i = 0; i < fields.length; i++) {
             fields[i] = new byte[11];
@@ -78,7 +78,7 @@ public class BoardStateConstructor {
         return createOfFields(fields, 3, false);
     }
 
-    private static BoardState createOfFields(byte[][] fields, int center, boolean simple
+    private static BoardModel createOfFields(byte[][] fields, int center, boolean simple
     ) {
         return new BoardStateConstructor(fields, center).toBoard(simple);
     }
@@ -139,17 +139,17 @@ public class BoardStateConstructor {
         return this;
     }
 
-    public BoardState toBoard() {
+    public BoardModel toBoard() {
         return toBoard(false);
     }
 
-    public BoardState toBoard(boolean simple) {
+    public BoardModel toBoard(boolean simple) {
         int[] sg = countSilverGold();
-        BoardState bs;
+        BoardModel bs;
         if (simple) {
-            bs = new SimpleBoardState(fields, kingX, kingY, center, sg[0], sg[1]);
+            bs = new SimpleBoardModel(fields, kingX, kingY, center, sg[0], sg[1]);
         } else {
-            bs = new BoardState(fields, kingX, kingY, center, sg[0], sg[1]);
+            bs = new BoardModel(fields, kingX, kingY, center, sg[0], sg[1]);
         }
         for (Coordinate silver : bs.silverPieces()) {
             assert !bs.isInCenter(silver);

@@ -19,13 +19,16 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeType;
 import talf.mechanics.Coordinate;
-import talf.mechanics.Match;
+import talf.mechanics.board.BoardModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class BoardPane extends GridPane {
+public class BoardView extends GridPane {
+
+    private final BorderPane[][] cells;
+
     private static final Background NORMAL_BACKGOURND = new Background(
         new BackgroundFill(Color.BLACK, null, null)
     );
@@ -38,28 +41,13 @@ public class BoardPane extends GridPane {
     private static final double NORMAL_STROKE = 0;
     private static final double SELECTED_STROKE = 3;
     private static final Paint STROKE_COLOR = Color.WHITE;
-    private final Match match;
-    private final BorderPane[][] cells;
-    private boolean canMoveSilver, canMoveGold;
-    private ListProperty<Coordinate> highlighted = new SimpleListProperty<>(
-        this, "Highlighted move coordinates", FXCollections.observableArrayList()
-    );
-    private ListProperty<Coordinate> highlightedAttack = new SimpleListProperty<>(
-        this, "Highlighted attack coordinates", FXCollections.observableArrayList()
-    );
-    private ObjectProperty<Coordinate> selected = new SimpleObjectProperty<>(
-        this, "Selected up piece");
-    private Runnable onMoved;
 
-    public BoardPane(Match match, boolean canMoveSilver, boolean canMoveGold) {
-        this.match = match;
-        this.canMoveSilver = canMoveSilver;
-        this.canMoveGold = canMoveGold;
-        for (int i = 0; i < match.getHeight(); i++) {
+    public BoardView() {
+        for (int i = 0; i < board.getHeight(); i++) {
             RowConstraints c = new RowConstraints(50);
             getRowConstraints().add(c);
         }
-        for (int i = 0; i < match.getWidth(); i++) {
+        for (int i = 0; i < board.getWidth(); i++) {
             ColumnConstraints c = new ColumnConstraints(50);
             getColumnConstraints().add(c);
         }
@@ -74,13 +62,13 @@ public class BoardPane extends GridPane {
             BorderStrokeStyle.SOLID,
             null, BorderStroke.MEDIUM
         ));
-        cells = new BorderPane[match.getWidth()][];
+        cells = new BorderPane[board.getWidth()][];
         for (int x = 0; x < cells.length; x++) {
-            cells[x] = new BorderPane[match.getHeight()];
+            cells[x] = new BorderPane[board.getHeight()];
             for (int y = 0; y < cells[x].length; y++) {
                 Coordinate c = new Coordinate(x, y);
                 BorderPane cell = new BorderPane();
-                if (match.isCenter(c)) {
+                if (board.isInCenter(c)) {
                     cell.setBorder(centerBorder);
                 } else {
                     cell.setBorder(border);
@@ -144,7 +132,7 @@ public class BoardPane extends GridPane {
         for (int x = 0; x < cells.length; x++) {
             for (int y = 0; y < cells[x].length; y++) {
                 Coordinate c = new Coordinate(x, y);
-                if (match.isEmpty(c)) {
+                if (board.isEmpty(c)) {
                     cells[c.x][c.y].setCenter(null);
                 } else {
                     Node piece = constructPiece(c);
@@ -176,7 +164,7 @@ public class BoardPane extends GridPane {
         c.setStrokeType(StrokeType.INSIDE);
         c.setStrokeWidth(NORMAL_STROKE);
         c.setStroke(STROKE_COLOR);
-        if (match.isKing(coordinate)) {
+        if (board.isKing(coordinate)) {
             c.setFill(Color.GOLD);
             Line l1 = new Line(radius, 0, radius, 2 * radius);
             l1.setStrokeWidth(radius / 8);
@@ -184,7 +172,7 @@ public class BoardPane extends GridPane {
             l2.setStrokeWidth(radius / 8);
             return new StackPane(c, l1, l2);
         }
-        if (match.isSilverPiece(coordinate)) {
+        if (board.isSilverPiece(coordinate)) {
             c.setFill(Color.SILVER);
         } else {
             c.setFill(Color.GOLD);
@@ -192,33 +180,6 @@ public class BoardPane extends GridPane {
         return c;
     }
 
-    private boolean canMovePiece(Coordinate coordinate) {
-        if (match.isSilverPiece(coordinate)) {
-            return canMoveSilver;
-        }
-        if (match.isGoldPiece(coordinate)) {
-            return canMoveGold;
-        }
-        return false;
-    }
-
-    private void move(Coordinate source, Coordinate target) {
-        int win = match.move(source, target);
-        if (win > 0) {
-            System.out.println("win = " + win);
-        }
-        BorderPane s = cells[source.x][source.y];
-        BorderPane t = cells[target.x][target.y];
-
-        Node n = s.getCenter();
-        s.setCenter(null);
-        t.setCenter(n);
-
-        PieceHandler pieceHandler = (PieceHandler) n.getOnMouseClicked();
-        pieceHandler.c = target;
-
-        onMoved();
-    }
 
     public void onMoved() {
         if (onMoved != null) {
@@ -230,71 +191,4 @@ public class BoardPane extends GridPane {
         this.onMoved = onMoved;
     }
 
-    private class PieceHandler implements EventHandler<MouseEvent> {
-        private Coordinate c;
-
-        PieceHandler(Coordinate c) {
-            this.c = c;
-        }
-
-        @Override
-        public void handle(MouseEvent event) {
-            if (selected.get() != null) {
-                return;
-            }
-            if (event.getEventType() == MouseEvent.MOUSE_CLICKED) {
-                if (canMovePiece(c)) {
-                    selected.set(c);
-                }
-                event.consume();
-                return;
-            }
-            ArrayList<Coordinate> moves = match.create();
-            moves.add(c);
-            match.findMoveMoves(moves, c);
-
-            List<Coordinate> attacks;
-            if (match.isCanAttach()) {
-                attacks = new ArrayList<>(4);
-                match.findAttackMoves(attacks, c);
-            } else {
-                attacks = Collections.emptyList();
-            }
-
-            if (event.getEventType() == MouseEvent.MOUSE_ENTERED) {
-                highlighted.addAll(moves);
-                highlightedAttack.addAll(attacks);
-            } else if (event.getEventType() == MouseEvent.MOUSE_EXITED) {
-                highlighted.removeAll(moves);
-                highlightedAttack.removeAll(attacks);
-            }
-        }
-    }
-
-    private class CellHandler implements EventHandler<MouseEvent> {
-        private final Coordinate c;
-
-        public CellHandler(Coordinate c) {
-            this.c = c;
-        }
-
-        @Override
-        public void handle(MouseEvent event) {
-            System.out.println("CellHandler.handle:");
-            if (event.getEventType() == MouseEvent.MOUSE_CLICKED) {
-                Coordinate pi = selected.get();
-                if (pi != null) {
-                    selected.set(null);
-                    highlighted.clear();
-                    highlightedAttack.clear();
-                    if (match.canMove(pi, c)) {
-                        // Move
-                        System.out.println("\tmove: " + pi + "->" + c);
-                        move(pi, c);
-                    }
-                    event.consume();
-                }
-            }
-        }
-    }
 }
